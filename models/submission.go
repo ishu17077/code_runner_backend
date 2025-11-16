@@ -13,13 +13,15 @@ type Submission struct {
 }
 
 type Status struct {
-	Message      string    `json:"message"`
-	Stdout       string    `json:"stdout"`
-	Stderr       string    `json:"stderr"`
-	Completed_At time.Time `json:"completed_at"`
+	Message        string    `json:"message"`
+	Current_status string    `json:"current_status"`
+	Stdout         string    `json:"stdout"`
+	Stderr         string    `json:"stderr"`
+	Completed_At   time.Time `json:"completed_at"`
 }
 
 type ExecutionResult struct {
 	Stdout string
+	Status string
 	Stderr string
 }
