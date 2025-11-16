@@ -1,4 +1,4 @@
-package database
+package services
 
 import (
 	"context"
@@ -31,7 +31,7 @@ func dBInstance() *mongo.Client {
 	return client
 }
 
-var Client *mongo.Client = dBInstance()
+var MongoClient *mongo.Client = dBInstance()
 
 func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
 	var collection *mongo.Collection = client.Database("code_runner").Collection(collectionName)

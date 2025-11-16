@@ -4,17 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/ishu17077/code_runner_backend/database"
 	"github.com/ishu17077/code_runner_backend/models"
+	"github.com/ishu17077/code_runner_backend/services"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-var rabbitMQ = database.QueuerChannel
-var submissionsCollection = database.OpenCollection(database.Client, "submissions")
+var rabbitMQ = services.QueuerChannel
+var submissionsCollection = services.OpenCollection(services.MongoClient, "submissions")
 var updateOptions = options.UpdateOne().SetUpsert(true)
 
 func ExecuteJobs() {
@@ -75,16 +76,15 @@ func processSubmission(job models.Job) error {
 	}
 
 	result, err := submissionsCollection.Aggregate(ctx, mongo.Pipeline{matchStage, lookupStage})
-
+	if err != nil {
+		log.Printf("Unable to process submission id: %s", job.SubmissionID)
+		return err
+	}
 	defer result.Close(ctx)
 	// if err != mongo.ErrNoDocuments {
 	// 	log.Printf("Cannot process the submission id: %s", job.SubmissionID)
 	// 	return nil
 	// }
-	if err != nil {
-		return err
-	}
-
 	if !result.Next(ctx) {
 		// Check if the cursor is empty
 		if err := result.Err(); err != nil {
@@ -105,10 +105,10 @@ func processSubmission(job models.Job) error {
 	submission = aggResult.Submission
 	tests = aggResult.Tests
 	log.Printf("Executing submission for Submission Id: %s, for %d tests", submission.Submission_id, len(tests))
-	for i, test := range tests {
+	for _, test := range tests {
 		log.Printf("Executing test %s for Submission Id: %s", test.Test_id, submission.Submission_id)
 
-	var	execResults ,err := helpers.ExecuteWithInput(
+		execResults, err := ExecuteWithInput(
 			submission.Language,
 			submission.Code,
 			test.Stdin,
@@ -116,33 +116,45 @@ func processSubmission(job models.Job) error {
 
 		if err != nil {
 			if err == context.DeadlineExceeded {
-				updateStatus(submission.Submission_id, "Time Limit Exceeded: 10s", "", err.Error())
+				updateStatus(submission.Submission_id, "Time Limit Exceeded: 10s", "", err.Error(), "FAILED")
 				return err
 			}
-			updateStatus(submission.Submission_id, "Error Occured", "", err.Error())
+			updateStatus(submission.Submission_id, "Error Occured", "", err.Error(), "FAILED")
 			return nil
 		}
-		if execResults.Stderr != ""{
-			updateStatus(submission.Submission_id, "Runtime Error", "", execResults.Stderr)
-			return  nil
+		if execResults.Stderr != "" {
+			updateStatus(submission.Submission_id, "Runtime Error", "", execResults.Stderr, "FAILED")
+			return nil
 		}
-		
+
+		if !compareOutput(execResults.Stdout, test.ExpectedOutput) {
+			updateStatus(aggResult.Submission_id, "Wrong Answer", execResults.Stdout, execResults.Stderr, "FAILED")
+			return nil
+		}
+
+		updateStatus(submission.Submission_id, "Accepted", execResults.Stdout, execResults.Stderr, "SUCCESS")
 	}
+	return nil
 }
 
-func updateStatus(submission_id, message, stdout, stderr string) {
+func updateStatus(submission_id, message, stdout, stderr, currStatus string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	var filter = bson.M{"submission_id": submission_id}
 	var status models.Status = models.Status{
-		Message:      message,
-		Stdout:       stdout,
-		Stderr:       stderr,
-		Completed_At: time.Now(),
+		Current_status: currStatus,
+		Message:        message,
+		Stdout:         stdout,
+		Stderr:         stderr,
+		Completed_At:   time.Now(),
 	}
 	defer cancel()
-	var updateObj = bson.D{{"$set", bson.D{{"status", status}}}}
+	var updateObj = bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}}}}
 	_, err := submissionsCollection.UpdateOne(ctx, filter, updateObj, updateOptions)
 	if err != nil {
 		log.Printf("Error updating status for submission_id: %s", err.Error())
 	}
+}
+
+func compareOutput(stdout, expected string) bool {
+	return strings.TrimSpace(stdout) == strings.TrimSpace(expected)
 }
