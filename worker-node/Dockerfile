@@ -14,7 +14,7 @@ FROM alpine:latest
 
 WORKDIR /root/
 
-RUN apk add curl build-base openjdk17
+RUN apk add curl build-base openjdk17 python3 py3-pip
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"

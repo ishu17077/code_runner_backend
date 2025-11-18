@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -42,16 +41,8 @@ func CheckSubmission(submission models.Submission, test models.Test) (string, er
 	return "FAILED", nil
 }
 
-func SaveFile(fileName string, code string) error {
-	err := os.WriteFile(fileName, []byte(code), 0755)
-	if err != nil {
-		return fmt.Errorf("Cannot save file: %w", err)
-	}
-	return nil
-}
-
-func CompileCCode(fileName string) error {
-	cmd := exec.Command("gcc", fileName, "-o", "./temp/main")
+func CompileCCode(filePath string) error {
+	cmd := exec.Command("gcc", filePath, "-o", "./temp/main", "-lm")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("Failed to compile C code: %w\nOutput: %s", err, output)
