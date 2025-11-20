@@ -1,11 +1,10 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	c_runner "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c"
+	"github.com/ishu17077/code_runner_backend/worker-node/helpers"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 )
 
@@ -27,6 +26,8 @@ var init_tests [2]models.TestCase = [2]models.TestCase{
 	},
 }
 
+//TODO: Implement sync.Mutex to handle process flow
+
 func InitialTest() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var submission models.Submission
@@ -35,16 +36,7 @@ func InitialTest() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 			return
 		}
-
-		for _, test := range init_tests {
-			res, err := c_runner.CheckSubmission(submission, test)
-			if err != nil || res != "SUCCESS" {
-				//TODO Fix this whatever
-				var err = fmt.Sprintf("Error: %s\nTest Result: %s", err, res)
-				c.JSON(http.StatusNotAcceptable, gin.H{"error": err})
-				return
-			}
-		}
-		c.JSON(http.StatusAccepted, gin.H{"msg": "All Okay!!"})
+		allOkay, execResults := helpers.AnalyzeSubmission(submission, init_tests[:])
+		c.JSON(http.StatusAccepted, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
 	}
 }

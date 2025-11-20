@@ -24,10 +24,11 @@ RUN java -version
 RUN gcc --version
 
 RUN mkdir /temp
-RUN mkdir /cgroup
+# RUN mkdir /cgroup
+# RUN touch /cgroup/program
 #! Fix this
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
-RUN chown executor:executorgrp /temp
+RUN chown executor:root /temp
 RUN chmod 775 /temp
 
 RUN echo "root:19239813@kwfjkf" | chpasswd 

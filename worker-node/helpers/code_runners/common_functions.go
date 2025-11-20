@@ -5,19 +5,18 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"syscall"
 
-	v2 "github.com/containerd/cgroups/v3/cgroup2"
+	v3 "github.com/containerd/cgroups/v3/cgroup2"
 )
 
 var (
 	CGroupFile    *os.File
-	CGroupManager *v2.Manager
+	CGroupManager *v3.Manager
 )
 
 func init() {
-	CGroupManager, CGroupFile = setUpCGroup()
+	CGroupManager, CGroupFile = SetUpCGroup()
 }
 
 func SaveFile(fileName string, code string) error {
@@ -28,25 +27,24 @@ func SaveFile(fileName string, code string) error {
 	return nil
 }
 
-func setUpCGroup() (*v2.Manager, *os.File) {
+func SetUpCGroup() (*v3.Manager, *os.File) {
 	var memeoryLimitBytes int64 = 200 * 1024 * 1024
 	const cpuPeriodMicroSec = 100000
 	const cpuQuotaMicroSec = 80000
 	cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
-	resources := v2.Resources{
-		Memory: &v2.Memory{
+	resources := v3.Resources{
+		Memory: &v3.Memory{
 			Max: &memeoryLimitBytes,
 		},
-		CPU: &v2.CPU{
-			Max: v2.CPUMax(cpuLimitString),
+		CPU: &v3.CPU{
+			Max: v3.CPUMax(cpuLimitString),
 		},
 	}
 
-	cGroupPath := filepath.Join("/cgroup", "program_limit")
-
-	manager, err := v2.NewManager(cGroupPath, "", &resources)
+	cGroupPath := "program_limit_group"
+	manager, err := v3.NewManager(cGroupPath, "", &resources)
 	if err != nil {
-		log.Fatalf("Error setting new manager for C group")
+		log.Fatalf("Error setting new manager for C group %s", err.Error())
 	}
 	cgroupFile, err := os.OpenFile(cGroupPath, os.O_RDONLY, 0)
 	if err != nil {
@@ -63,5 +61,13 @@ func SetLimitsAndPermissions(cmd *exec.Cmd) {
 		},
 		UseCgroupFD: true,
 		CgroupFD:    int(CGroupFile.Fd()),
+	}
+}
+
+func CleanUp() {
+	runCmd := exec.Command("rm", "-rf", "/temp/*")
+	_, err := runCmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("Cannot delete temp directory contents")
 	}
 }

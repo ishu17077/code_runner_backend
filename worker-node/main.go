@@ -30,5 +30,4 @@ func main() {
 		fmt.Printf("Error starting the server: %s\n", err.Error())
 		panic(err)
 	}
-
 }

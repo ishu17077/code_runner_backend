@@ -11,6 +11,7 @@ import (
 
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
+	"github.com/ishu17077/code_runner_backend/worker-node/models/enums"
 )
 
 const filePath = "/temp/main.py"
@@ -22,19 +23,19 @@ func PreCompilationTask(submission models.Submission) error {
 	return nil
 }
 
-func CheckPythonSubmission(submission models.Submission, test models.TestCase) (string, error) {
-	res, err := ExecutePythonCode(filePath, test.Stdin)
+func CheckSubmission(submission models.Submission, test models.TestCase) (enums.CurrentStatus, error) {
+	res, err := executePythonCode(filePath, test.Stdin)
 	if err != nil {
-		return "FAILED", fmt.Errorf("The test was unsuccessful: %s", err.Error())
+		return enums.FAILED, fmt.Errorf("The test was unsuccessful: %s", err.Error())
 	}
 
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
-		return "SUCCESS", nil
+		return enums.SUCCESS, nil
 	}
-	return "FAILED", fmt.Errorf("Test: #%s Failed", test.Test_id)
+	return enums.SUCCESS, fmt.Errorf("Test: #%s Failed", test.Test_id)
 }
 
-func ExecutePythonCode(filePath string, stdin string) (string, error) {
+func executePythonCode(filePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "python", filePath)
