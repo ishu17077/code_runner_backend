@@ -1,14 +1,18 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type ExecResult struct {
-	ID         string  `bson:"_id"`
-	Problem_id string  `json:"problem_id" binding:"required"` //? if we wanna change just do bson:"problem_id"
-	Team_id    string  `json:"team_id" binding:"required"`
-	Stderr     string  `json:"stderr"`
-	Test_id    string  `json:"test_id"`
-	Status     *Status `json:"status"`
+	ID            bson.ObjectID `bson:"_id"`
+	Problem_id    string        `json:"problem_id" binding:"required"` //? if we wanna change just do bson:"problem_id"
+	Team_id       string        `json:"team_id" binding:"required"`
+	Test_id       string        `json:"test_id"`
+	Status        *Status       `json:"status"`
+	ExecResult_id string        `json:"exec_result_id"`
 }
 
 type Status struct {
