@@ -22,7 +22,14 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustc --version
 RUN java -version
 RUN gcc --version
-RUN mkdir temp
+
+RUN mkdir /temp
+#! Fix this
+RUN addgroup executor --gid 7070 && adduser executor --uid 6969
+RUN chown executor:executor /temp
+RUN chmod 775 /temp
+
+
 
 COPY --from=golang /app/workerNode .
 

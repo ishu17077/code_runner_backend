@@ -1,36 +1,37 @@
-package coderunners
+package c
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"time"
 
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 )
 
-func PreCompilation(submission models.Submission) error {
-	const fileName = "main.c"
-	const directoryName = "./temp/"
+const filePath = "./temp/main.c"
+const outputPath = "./temp/main"
 
-	if err := SaveFile(filepath.Join(directoryName, fileName), submission.Code); err != nil {
+func PreCompilation(submission models.Submission) error {
+
+	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
 		return err
 	}
 
-	if err := CompileCCode(filepath.Join(directoryName, fileName)); err != nil {
-		return err
+	if err := CompileCode(filePath, outputPath); err != nil {
+		return fmt.Errorf("Compilation Failed: %s", err.Error())
 	}
 	return nil
 }
 
 func CheckSubmission(submission models.Submission, test models.Test) (string, error) {
-	const fileName = "main.c"
-	const directoryName = "./temp/"
 
 	//TODO: Impl executeCcode test case
-	res, err := ExecuteCCode(filepath.Join(directoryName, "main"), test.Stdin)
+	res, err := ExecuteCode(outputPath, test.Stdin)
 	if err != nil {
 		return "FAILED", err
 	}
@@ -38,14 +39,14 @@ func CheckSubmission(submission models.Submission, test models.Test) (string, er
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
 		return "SUCCESS", nil
 	}
-	return "FAILED", nil
+	return "FAILED", fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
 }
 
-func CompileCCode(filePath string) error {
-	cmd := exec.Command("gcc", filePath, "-o", "./temp/main", "-lm")
-	output, err := cmd.CombinedOutput()
+func CompileCode(filePath string, outputPath string) error {
+	cmd := exec.Command("gcc", filePath, "-o", outputPath, "-lm")
+	_, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("Failed to compile C code: %w\nOutput: %s", err, output)
+		return fmt.Errorf("Compilation Failed: %s", err.Error())
 	}
 	// fileMode := os.FileMode(0755)
 	// if chmodErr := os.Chmod("./temp/main", fileMode); chmodErr != nil {
@@ -54,14 +55,18 @@ func CompileCCode(filePath string) error {
 	return nil
 }
 
-func ExecuteCCode(binaryFileName string, stdin string) (string, error) {
-	runCmd := exec.Command("./" + binaryFileName)
+func ExecuteCode(binaryFilePath string, stdin string) (string, error) {
+
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
-	var outputBuffer bytes.Buffer
-	runCmd.Stdout = &outputBuffer
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
 	}
+	var outputBuffer bytes.Buffer
+	runCmd.Stdout = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Error starting the program")
@@ -69,7 +74,7 @@ func ExecuteCCode(binaryFileName string, stdin string) (string, error) {
 
 	_, writeErr := io.WriteString(stdinPipe, stdin)
 	if writeErr != nil {
-		return "", fmt.Errorf("Error writing input to file")
+		return "", fmt.Errorf("Error writing input to stdin")
 	}
 	stdinPipe.Close()
 
