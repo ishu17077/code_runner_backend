@@ -2,6 +2,7 @@ package cpp
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
@@ -24,7 +25,7 @@ func PreCompilationTask(submission models.Submission) error {
 	return nil
 }
 
-func CheckSubmission(submission models.Submission, test models.Test) (string, error) {
+func CheckSubmission(submission models.Submission, test models.TestCase) (string, error) {
 	res, err := ExecuteCode(outputPath, test.Stdin)
 	if err != nil {
 		return "FAILED", err
@@ -42,18 +43,22 @@ func CompileCode(filePath string, outputPath string) error {
 
 	_, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Errorf("Compilation  Failed: %s", err.Error())
+		return fmt.Errorf("Compilation  Failed: %s", err.Error())
 	}
 
 	return nil
 }
 
 func ExecuteCode(binaryFilePath string, stdin string) (string, error) {
-	runCmd := exec.Command(binaryFilePath)
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
+	coderunners.SetLimitsAndPermissions(runCmd)
 	stdinPipe, pipErr := runCmd.StdinPipe()
 
 	if pipErr != nil {
-		fmt.Errorf("Error connecting pipe input")
+		return "", fmt.Errorf("Error connecting pipe input")
 	}
 
 	var outputBuffer bytes.Buffer
@@ -64,15 +69,16 @@ func ExecuteCode(binaryFilePath string, stdin string) (string, error) {
 		return "", fmt.Errorf("Error starting the program")
 	}
 
-	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil{
+	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil {
 		return "", fmt.Errorf("Error writing to the input pipe")
 	}
 
 	stdinPipe.Close()
-	runCmd.WaitDelay = time.Duration(10*time.Second)
+	if waitErr := runCmd.Wait(); waitErr != nil {
+		return "", fmt.Errorf("Error executing the program")
+	}
 
-	if waitErr := runCmd.WaitDelay
+	var finalOutput = outputBuffer.String()
 
-
-
+	return finalOutput, nil
 }

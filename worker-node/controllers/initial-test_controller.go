@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
+	c_runner "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 )
 
 // ! Simple odd even Test
-var init_tests [2]models.Test = [2]models.Test{
+var init_tests [2]models.TestCase = [2]models.TestCase{
 	{
 		Problem_id:     "69",
 		Is_public:      true,
@@ -37,7 +37,7 @@ func InitialTest() gin.HandlerFunc {
 		}
 
 		for _, test := range init_tests {
-			res, err := coderunners.CheckSubmission(submission, test)
+			res, err := c_runner.CheckSubmission(submission, test)
 			if err != nil || res != "SUCCESS" {
 				//TODO Fix this whatever
 				var err = fmt.Sprintf("Error: %s\nTest Result: %s", err, res)
