@@ -3,6 +3,8 @@ package coderunners
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"syscall"
 )
 
 func SaveFile(fileName string, code string) error {
@@ -11,4 +13,15 @@ func SaveFile(fileName string, code string) error {
 		return fmt.Errorf("Cannot save file: %w", err)
 	}
 	return nil
+}
+
+func setLimitsAndPermissions(cmd *exec.Cmd){
+	cpuLimit := syscall.Rlimit{
+		Cur: 10,
+		Max: 10,
+	}
+
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		
+	}
 }
