@@ -24,12 +24,13 @@ RUN java -version
 RUN gcc --version
 
 RUN mkdir /temp
+RUN mkdir /cgroup
 #! Fix this
-RUN addgroup executor --gid 7070 && adduser executor --uid 6969
-RUN chown executor:executor /temp
+RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
+RUN chown executor:executorgrp /temp
 RUN chmod 775 /temp
 
-
+RUN echo "root:19239813@kwfjkf" | chpasswd 
 
 COPY --from=golang /app/workerNode .
 

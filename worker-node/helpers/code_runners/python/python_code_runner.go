@@ -1,27 +1,29 @@
-package coderunners
+package python
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"time"
 
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 )
 
-func CheckPythonSubmission(submission models.Submission, test models.Test) (string, error) {
-	const fileName = "main.py"
-	const directoryName = "./test"
+const filePath = "/temp/main.py"
 
-	fileWithDir := filepath.Join(directoryName, fileName)
-
-	if err := SaveFile(fileWithDir, submission.Code); err != nil {
-		return "", fmt.Errorf("Error saving the file: %s", err.Error())
+func PreCompilationTask(submission models.Submission) error {
+	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
+		return fmt.Errorf("Error saving the file: %s", err.Error())
 	}
+	return nil
+}
 
-	res, err := ExecutePythonCode(fileWithDir, test.Stdin)
+func CheckPythonSubmission(submission models.Submission, test models.TestCase) (string, error) {
+	res, err := ExecutePythonCode(filePath, test.Stdin)
 	if err != nil {
 		return "FAILED", fmt.Errorf("The test was unsuccessful: %s", err.Error())
 	}
@@ -33,7 +35,10 @@ func CheckPythonSubmission(submission models.Submission, test models.Test) (stri
 }
 
 func ExecutePythonCode(filePath string, stdin string) (string, error) {
-	runCmd := exec.Command("./" + filePath)
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, "python", filePath)
+	coderunners.SetLimitsAndPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 
 	var outputBuffer bytes.Buffer
