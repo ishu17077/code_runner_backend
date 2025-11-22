@@ -59,7 +59,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	defer cancel()
 
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
-	coderunners.SetLimitsAndPermissions(runCmd)
+	// coderunners.SetLimitsAndPermissions(runCmd)
 	stdinPipe, pipErr := runCmd.StdinPipe()
 
 	if pipErr != nil {

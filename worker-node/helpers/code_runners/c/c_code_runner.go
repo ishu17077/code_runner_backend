@@ -60,7 +60,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
-	coderunners.SetLimitsAndPermissions(runCmd)
+	// coderunners.SetLimitsAndPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
