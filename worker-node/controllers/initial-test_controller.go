@@ -40,3 +40,9 @@ func InitialTest() gin.HandlerFunc {
 		c.JSON(http.StatusAccepted, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
 	}
 }
+
+func PrivateTestSubmission() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+	}
+}

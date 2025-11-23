@@ -47,7 +47,7 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 	for _, testCase := range testCases {
 		res, err := c.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res.ToString())
+		execResult, passed := getExecResults(submission, testCase, err, res)
 		if !passed {
 			allPassed = false
 		}
@@ -64,7 +64,7 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 	for _, testCase := range testCases {
 		res, err := cpp.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res.ToString())
+		execResult, passed := getExecResults(submission, testCase, err, res)
 		if !passed {
 			allPassed = false
 		}
@@ -81,7 +81,7 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 	for _, testCase := range testCases {
 		res, err := python.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res.ToString())
+		execResult, passed := getExecResults(submission, testCase, err, res)
 		if !passed {
 			allPassed = false
 		}
@@ -90,7 +90,7 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 	return allPassed, nil
 }
 
-func getExecResults(submission models.Submission, testCase models.TestCase, err error, res string) (models.ExecResult, bool) {
+func getExecResults(submission models.Submission, testCase models.TestCase, err error, res enums.CurrentStatus) (models.ExecResult, bool) {
 	var execResult models.ExecResult = models.ExecResult{
 		ID:         bson.NewObjectID(),
 		Problem_id: submission.ProblemID,
@@ -98,7 +98,7 @@ func getExecResults(submission models.Submission, testCase models.TestCase, err 
 		Test_id:    testCase.Test_id,
 	}
 	execResult.ExecResult_id = execResult.ID.Hex()
-	if err != nil || res != "SUCCESS" {
+	if err != nil || res != enums.SUCCESS {
 		execResult.Status = &models.Status{
 			Message:        err.Error(),
 			Current_status: "FAILED",

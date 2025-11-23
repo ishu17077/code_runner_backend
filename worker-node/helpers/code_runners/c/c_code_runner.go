@@ -60,7 +60,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
-	// coderunners.SetLimitsAndPermissions(runCmd)
+	coderunners.SetPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -69,8 +69,9 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	runCmd.Stdout = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Error starting the program")
+		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
+	coderunners.SetResourceLimits(runCmd)
 
 	_, writeErr := io.WriteString(stdinPipe, stdin)
 	if writeErr != nil {
@@ -79,7 +80,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		return "", fmt.Errorf("Error executing file")
+		return "", fmt.Errorf("Error executing file %s", waitErr.Error())
 	}
 	var finalOutput = outputBuffer.String()
 	return finalOutput, nil
