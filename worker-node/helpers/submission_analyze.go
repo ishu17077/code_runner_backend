@@ -12,37 +12,37 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase) (bool, []models.ExecResult) {
+func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase) (bool, []models.ExecResult, error) {
 	language := enums.LanguageParser(submission.Language)
 	var execResults []models.ExecResult
 	switch language {
 	case enums.C:
 		res, err := testCCode(submission, testCases, &execResults)
 		if err != nil || !res {
-			return false, execResults
+			return false, execResults, err
 		}
-		return true, execResults
+		return true, execResults, nil
 	case enums.Cpp:
 		res, err := testCppCode(submission, testCases, &execResults)
 		if err != nil || !res {
-			return false, execResults
+			return false, execResults, err
 		}
-		return true, execResults
+		return true, execResults, nil
 
 	case enums.Python:
 		res, err := testPythonCode(submission, testCases, &execResults)
 		if err != nil || !res {
-			return false, execResults
+			return false, execResults, nil
 		}
-		return true, execResults
+		return true, execResults, err
 	}
-	return false, execResults
+	return false, execResults, nil
 }
 
 func testCCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
 	if err := c.PreCompilationTask(submission); err != nil {
-		return false, fmt.Errorf("Error Compiling the file the file")
+		return false, fmt.Errorf("Error compiling the file")
 	}
 	for _, testCase := range testCases {
 		res, err := c.CheckSubmission(submission, testCase)

@@ -15,6 +15,11 @@ var (
 	CGroupManager *v3.Manager
 )
 
+const (
+	maj int64 = 8
+	min int64 = 0
+)
+
 func init() {
 	CGroupManager, CGroupFile = SetUpCGroup()
 }
@@ -29,9 +34,9 @@ func SaveFile(fileName string, code string) error {
 
 func SetUpCGroup() (*v3.Manager, *os.File) {
 	var memeoryLimitBytes int64 = 200 * 1024 * 1024
-	var highThresholdBytes int64 = 199648 * 1024
-	var cpuPeriodMicroSec = uint64(100000)
-	var cpuQuotaMicroSec = int64(80000)
+	var highThresholdBytes int64 = 170 * 1024 * 1024
+	var cpuPeriodMicroSec = uint64(1000000)
+	var cpuQuotaMicroSec = int64(200000)
 	const oomKillEnabledValue = "1"
 	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
 	resources := v3.Resources{
@@ -39,6 +44,34 @@ func SetUpCGroup() (*v3.Manager, *os.File) {
 			High: &highThresholdBytes,
 			Max:  &memeoryLimitBytes,
 			Swap: &[]int64{0}[0],
+		},
+		IO: &v3.IO{
+			Max: []v3.Entry{
+				{
+					Major: maj,
+					Minor: min,
+					Type:  v3.ReadBPS, // Bytes per second
+					Rate:  0,
+				},
+				{
+					Major: maj,
+					Minor: min,
+					Type:  v3.WriteBPS, // Bytes per second
+					Rate:  0,
+				},
+				{
+					Major: maj,
+					Minor: min,
+					Type:  v3.ReadIOPS, // I/O Operations per second
+					Rate:  0,
+				},
+				{
+					Major: maj,
+					Minor: min,
+					Type:  v3.WriteIOPS, // I/O Operations per second
+					Rate:  0,
+				},
+			},
 		},
 
 		CPU: &v3.CPU{

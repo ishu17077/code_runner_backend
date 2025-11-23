@@ -49,7 +49,7 @@ func executePythonCode(filePath string, stdin string) (string, error) {
 		return "", fmt.Errorf("Error connecting pipe input")
 	}
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Resources Limit: Consuming too much resources %s", startErr.Error())
+		return "", fmt.Errorf("Error: Executing file")
 	}
 
 	coderunners.SetResourceLimits(runCmd)
@@ -61,7 +61,7 @@ func executePythonCode(filePath string, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		return "", fmt.Errorf("Error executing file")
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
 
 	var finalOutput = outputBuffer.String()

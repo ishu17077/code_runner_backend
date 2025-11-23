@@ -80,7 +80,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		return "", fmt.Errorf("Error executing file %s", waitErr.Error())
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
 	var finalOutput = outputBuffer.String()
 	return finalOutput, nil

@@ -9,7 +9,15 @@ services:
     # Env variables
     # Use privileged mode trying....
 
-    privileged: true
-    volumes:
-      - /sys/fs/cgroup:/tmp/cgroup:rw
+    # privileged: true
+    # volumes:
+    #   - /sys/fs/cgroup:/tmp/cgroup:rw
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: 0.3
+    cap_add:
+      - NET_ADMIN
     command: ["sleep", "infinity"]
