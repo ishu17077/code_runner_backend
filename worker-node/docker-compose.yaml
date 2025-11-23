@@ -4,6 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
 
+    restart: no
+    # ! Just to name image to code_runner
+    image: code_runner
+    container_name: code_runner
     ports:
       - 8060:8060
     # Env variables
@@ -20,4 +24,5 @@ services:
           cpus: 0.3
     cap_add:
       - NET_ADMIN
-    command: ["sleep", "infinity"]
+    # ! For debugging only
+    # command: ["sleep", "infinity"]
