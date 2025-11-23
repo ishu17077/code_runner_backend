@@ -59,7 +59,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	defer cancel()
 
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
-	// coderunners.SetLimitsAndPermissions(runCmd)
+	coderunners.SetPermissions(runCmd)
 	stdinPipe, pipErr := runCmd.StdinPipe()
 
 	if pipErr != nil {
@@ -71,9 +71,9 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	runCmd.Stdin = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Error starting the program")
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources %s", startErr.Error())
 	}
-
+	coderunners.SetResourceLimits(runCmd)
 	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil {
 		return "", fmt.Errorf("Error writing to the input pipe")
 	}

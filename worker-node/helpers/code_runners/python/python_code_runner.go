@@ -39,7 +39,7 @@ func executePythonCode(filePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "python", filePath)
-	// coderunners.SetLimitsAndPermissions(runCmd)
+	coderunners.SetPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 
 	var outputBuffer bytes.Buffer
@@ -49,9 +49,10 @@ func executePythonCode(filePath string, stdin string) (string, error) {
 		return "", fmt.Errorf("Error connecting pipe input")
 	}
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Error starting the program")
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources %s", startErr.Error())
 	}
 
+	coderunners.SetResourceLimits(runCmd)
 	_, writeErr := io.WriteString(stdinPipe, stdin)
 	if writeErr != nil {
 		return "", fmt.Errorf("Error writing input to file")

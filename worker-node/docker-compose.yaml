@@ -1,0 +1,15 @@
+services:
+  code_runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - 8060:8060
+    # Env variables
+    # Use privileged mode trying....
+
+    privileged: true
+    volumes:
+      - /sys/fs/cgroup:/tmp/cgroup:rw
+    command: ["sleep", "infinity"]
