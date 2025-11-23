@@ -36,13 +36,16 @@ RUN chmod 775 /temp
 
 RUN echo "root:1923934edfdfKLJHDKJkwfjkf" | chpasswd 
 
+COPY --from=golang /app/entrypoint.sh .
 COPY --from=golang /app/worker_node .
+
+RUN chmod +x ./entrypoint.sh
 
 EXPOSE 8060
 
-
+RUN chmod +x ./worker_node
 
 # ENTRYPOINT ["echo", "+cpu +memory +pids", ">", "/sys/fs/cgroup/cgroup.subtree_control"]
-
-CMD [ "./worker_node" ]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["./worker_node"]
 
