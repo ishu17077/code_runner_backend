@@ -71,7 +71,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 	runCmd.Stdin = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Resources Limit: Consuming too much resources %s", startErr.Error())
+		return "", fmt.Errorf("Error executing the compiled binary")
 	}
 	coderunners.SetResourceLimits(runCmd)
 	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil {
@@ -80,7 +80,7 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 
 	stdinPipe.Close()
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		return "", fmt.Errorf("Error executing the program")
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
 
 	var finalOutput = outputBuffer.String()

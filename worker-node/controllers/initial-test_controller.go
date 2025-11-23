@@ -36,7 +36,11 @@ func InitialTest() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 			return
 		}
-		allOkay, execResults := helpers.AnalyzeSubmission(submission, init_tests[:])
+		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, init_tests[:])
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusAccepted, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
 	}
 }
