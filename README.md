@@ -7,7 +7,7 @@
 > Clone the repo
 
 ```bash
-git clone htps://github.com/ishu17077/code_runner_backend
+git clone https://github.com/ishu17077/code_runner_backend
 cd code_runner_backend
 ```
 
