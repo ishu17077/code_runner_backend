@@ -6,33 +6,42 @@ import (
 
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/cpp"
+	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/java"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/python"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
-	"github.com/ishu17077/code_runner_backend/worker-node/models/enums"
+	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	"github.com/ishu17077/code_runner_backend/worker-node/models/enums/language"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase) (bool, []models.ExecResult, error) {
-	language := enums.LanguageParser(submission.Language)
+	lang := language.LanguageParser(submission.Language)
 	var execResults []models.ExecResult
-	switch language {
-	case enums.C:
+	switch lang {
+	case language.C:
 		res, err := testCCode(submission, testCases, &execResults)
 		if err != nil || !res {
 			return false, execResults, err
 		}
-		return true, execResults, nil
-	case enums.Cpp:
+		return true, execResults, err
+	case language.Cpp:
 		res, err := testCppCode(submission, testCases, &execResults)
 		if err != nil || !res {
 			return false, execResults, err
 		}
-		return true, execResults, nil
+		return true, execResults, err
 
-	case enums.Python:
+	case language.Python:
 		res, err := testPythonCode(submission, testCases, &execResults)
 		if err != nil || !res {
-			return false, execResults, nil
+			return false, execResults, err
+		}
+		return true, execResults, err
+
+	case language.Java:
+		res, err := testJavaCode(submission, testCases, &execResults)
+		if err != nil || !res {
+			return false, execResults, err
 		}
 		return true, execResults, err
 	}
@@ -42,12 +51,12 @@ func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase
 func testCCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
 	if err := c.PreCompilationTask(submission); err != nil {
-		return false, fmt.Errorf("Error compiling the file")
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
 		res, err := c.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res)
+		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -59,12 +68,12 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 func testCppCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
 	if err := cpp.PreCompilationTask(submission); err != nil {
-		return false, fmt.Errorf("Error Compiling the file the file")
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
 		res, err := cpp.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res)
+		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -76,12 +85,12 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 func testPythonCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
 	if err := python.PreCompilationTask(submission); err != nil {
-		return false, fmt.Errorf("Error Compiling the file the file")
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
 		res, err := python.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, err, res)
+		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -90,7 +99,24 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 	return allPassed, nil
 }
 
-func getExecResults(submission models.Submission, testCase models.TestCase, err error, res enums.CurrentStatus) (models.ExecResult, bool) {
+func testJavaCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	if err := java.PreCompilationTask(submission); err != nil {
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
+	}
+	for _, testCase := range testCases {
+		res, err := java.CheckSubmission(submission, testCase)
+		var execResult models.ExecResult
+		execResult, passed := getExecResults(submission, testCase, res, err)
+		if !passed {
+			allPassed = false
+		}
+		*execResults = append(*execResults, execResult)
+	}
+	return allPassed, nil
+}
+
+func getExecResults(submission models.Submission, testCase models.TestCase, res currentstatus.CurrentStatus, err error) (models.ExecResult, bool) {
 	var execResult models.ExecResult = models.ExecResult{
 		ID:         bson.NewObjectID(),
 		Problem_id: submission.ProblemID,
@@ -98,7 +124,7 @@ func getExecResults(submission models.Submission, testCase models.TestCase, err 
 		Test_id:    testCase.Test_id,
 	}
 	execResult.ExecResult_id = execResult.ID.Hex()
-	if err != nil || res != enums.SUCCESS {
+	if err != nil || res != currentstatus.SUCCESS {
 		execResult.Status = &models.Status{
 			Message:        err.Error(),
 			Current_status: "FAILED",
@@ -108,9 +134,9 @@ func getExecResults(submission models.Submission, testCase models.TestCase, err 
 		}
 		return execResult, false
 	} else {
-		//! SUCCESSful Execution
+		//? SUCCESSful Execution :)
 		execResult.Status = &models.Status{
-			Message:        fmt.Sprintf("Test Case %s Passed", testCase.Test_id),
+			Message:        fmt.Sprintf("Test: #%s Passed", testCase.Test_id),
 			Current_status: "SUCCESS",
 			Stdout:         "",
 			Stderr:         "",

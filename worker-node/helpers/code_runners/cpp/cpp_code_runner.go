@@ -11,36 +11,36 @@ import (
 
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
-	"github.com/ishu17077/code_runner_backend/worker-node/models/enums"
+	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
 const filePath = "/temp/main.cpp"
 const outputPath = "/temp/main"
 
 func PreCompilationTask(submission models.Submission) error {
-	err := coderunners.SaveFile(filePath, submission.Code)
-	if err != nil {
+
+	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
 		return err
 	}
 
-	if err = compileCode(filePath, outputPath); err != nil {
+	if err := compileCode(filePath, outputPath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase) (enums.CurrentStatus, error) {
+func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
 	res, err := executeCode(outputPath, test.Stdin)
 	if err != nil {
-		return enums.FAILED, err
+		return currentstatus.FAILED, err
 	}
 
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
-		return enums.SUCCESS, nil
+		return currentstatus.SUCCESS, nil
 	}
 
-	return enums.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
+	return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
 }
 
 func compileCode(filePath string, outputPath string) error {
@@ -68,12 +68,16 @@ func executeCode(binaryFilePath string, stdin string) (string, error) {
 
 	var outputBuffer bytes.Buffer
 
-	runCmd.Stdin = &outputBuffer
+	runCmd.Stdout = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Error executing the compiled binary")
 	}
-	coderunners.SetResourceLimits(runCmd)
+	
+	if err := coderunners.SetResourceLimits(runCmd); err != nil {
+		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
+	}
+
 	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil {
 		return "", fmt.Errorf("Error writing to the input pipe")
 	}

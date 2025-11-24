@@ -1,4 +1,4 @@
-package c
+package java
 
 import (
 	"bytes"
@@ -14,77 +14,79 @@ import (
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
-const filePath = "/temp/main.c"
-const outputPath = "/temp/main"
+const filePath = "/temp/Solution.java"
+const outputPath = "/temp/Solution.class"
+const className = "Solution"
+const dir = "/temp/"
 
 func PreCompilationTask(submission models.Submission) error {
 	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
 		return err
 	}
 
-	if err := compileCode(filePath, outputPath); err != nil {
-		return fmt.Errorf("Compilation Failed: %s", err.Error())
+	if err := compileCode(filePath, dir); err != nil {
+		return err
 	}
 	return nil
 }
 
 func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
-
-	//TODO: Impl executeCcode test case
-	res, err := executeCode(outputPath, test.Stdin)
+	res, err := executeCode(dir, className, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err
 	}
-
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
 		return currentstatus.SUCCESS, nil
 	}
 	return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
 }
 
-func compileCode(filePath string, outputPath string) error {
-	cmd := exec.Command("gcc", filePath, "-o", outputPath, "-lm")
+func compileCode(filepath, outputDir string) error {
+	cmd := exec.Command("javac", "-d", outputDir, filepath)
 	_, err := cmd.CombinedOutput()
+
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s", err.Error())
 	}
-	// fileMode := os.FileMode(0755)
-	// if chmodErr := os.Chmod("/temp/main", fileMode); chmodErr != nil {
-	// 	return fmt.Errorf("Failed to set execute permissions to file")
-	// }
 	return nil
 }
 
-func executeCode(binaryFilePath string, stdin string) (string, error) {
-
+func executeCode(classPath, className, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, binaryFilePath)
+	runCmd := exec.CommandContext(ctx, "java", "-cp", classPath, className)
+
 	coderunners.SetPermissions(runCmd)
-	stdinPipe, pipeErr := runCmd.StdinPipe()
-	if pipeErr != nil {
+
+	stdinPine, pipErr := runCmd.StdinPipe()
+	if pipErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
 	}
+
 	var outputBuffer bytes.Buffer
+
 	runCmd.Stdout = &outputBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
+		return "", fmt.Errorf("Error executing the compiled binary")
 	}
 
 	if err := coderunners.SetResourceLimits(runCmd); err != nil {
 		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
 	}
 
-	_, writeErr := io.WriteString(stdinPipe, stdin)
-	if writeErr != nil {
-		return "", fmt.Errorf("Error writing input to stdin")
+	if _, writeErr := io.WriteString(stdinPine, stdin); writeErr != nil {
+		return "", fmt.Errorf("Error writing to input pipe")
 	}
-	stdinPipe.Close()
+
+	stdinPine.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
 		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
+
 	var finalOutput = outputBuffer.String()
+
 	return finalOutput, nil
+
 }

@@ -1,4 +1,4 @@
-package enums
+package currentstatus
 
 import "strings"
 
