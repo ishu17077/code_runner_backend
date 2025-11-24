@@ -18,11 +18,11 @@ var init_tests [2]models.TestCase = [2]models.TestCase{
 		Test_id:        "1",
 	},
 	{
-		Problem_id:     "28",
+		Problem_id:     "69",
 		Is_public:      true,
 		Stdin:          "11\n",
 		ExpectedOutput: "No",
-		Test_id:        "1",
+		Test_id:        "2",
 	},
 }
 

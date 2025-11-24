@@ -11,7 +11,7 @@ import (
 
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
-	"github.com/ishu17077/code_runner_backend/worker-node/models/enums"
+	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
 const filePath = "/temp/main.py"
@@ -23,23 +23,25 @@ func PreCompilationTask(submission models.Submission) error {
 	return nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase) (enums.CurrentStatus, error) {
+func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
 	res, err := executePythonCode(filePath, test.Stdin)
 	if err != nil {
-		return enums.FAILED, fmt.Errorf("The test was unsuccessful: %s", err.Error())
+		return currentstatus.FAILED, fmt.Errorf("The test was unsuccessful: %s", err.Error())
 	}
 
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
-		return enums.SUCCESS, nil
+		return currentstatus.SUCCESS, nil
 	}
-	return enums.SUCCESS, fmt.Errorf("Test: #%s Failed", test.Test_id)
+	return currentstatus.SUCCESS, fmt.Errorf("Test: #%s Failed", test.Test_id)
 }
 
 func executePythonCode(filePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "python", filePath)
+
 	coderunners.SetPermissions(runCmd)
+
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 
 	var outputBuffer bytes.Buffer
