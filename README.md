@@ -4,6 +4,13 @@
 
 **Note:** This project must run inside Docker because it uses specific users and permissions.
 
+> Clone the repo
+
+```bash
+git clone htps://github.com/ishu17077/code_runner_backend
+cd code_runner_backend
+```
+
 > Usage to run
 
 ```bash
