@@ -14,10 +14,12 @@ FROM alpine:3.22.2
 
 WORKDIR /root/
 
-RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables
+RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables 
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN export DOTNET_NOLOGO=true
 
 RUN rustc --version
 RUN java -version
@@ -48,4 +50,5 @@ RUN chmod +x ./worker_node
 # ENTRYPOINT ["echo", "+cpu +memory +pids", ">", "/sys/fs/cgroup/cgroup.subtree_control"]
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["./worker_node"]
+
 

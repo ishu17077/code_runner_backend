@@ -1,4 +1,4 @@
-package java
+package c_sharp
 
 import (
 	"context"
@@ -12,24 +12,17 @@ import (
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
-const filePath = "/temp/Solution.java"
-const outputPath = "/temp/Solution.class"
-const className = "Solution"
-const dir = "/temp/"
+const filePath = "/temp/prog.cs"
 
 func PreCompilationTask(submission models.Submission) error {
 	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
-		return err
-	}
-
-	if err := compileCode(filePath, dir); err != nil {
 		return err
 	}
 	return nil
 }
 
 func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
-	res, err := executeCode(dir, className, test.Stdin)
+	res, err := executeCode(filePath, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err
 	}
@@ -39,20 +32,10 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 	return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
 }
 
-func compileCode(filepath, outputDir string) error {
-	cmd := exec.Command("javac", "-d", outputDir, filepath)
-	_, err := cmd.CombinedOutput()
-
-	if err != nil {
-		return fmt.Errorf("Compilation Failed: %s", err.Error())
-	}
-	return nil
-}
-
-func executeCode(classPath, className, stdin string) (string, error) {
+func executeCode(filepath, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "java", "-cp", classPath, className)
 
+	runCmd := exec.CommandContext(ctx, "dotnet", "run", filepath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

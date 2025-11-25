@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c"
+	cs "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c_sharp"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/cpp"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/java"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/python"
@@ -44,12 +46,20 @@ func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase
 			return false, execResults, err
 		}
 		return true, execResults, err
+
+	case language.Cs:
+		res, err := testCSharpCode(submission, testCases, &execResults)
+		if err != nil || !res {
+			return false, execResults, err
+		}
+		return true, execResults, err
 	}
 	return false, execResults, nil
 }
 
 func testCCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	defer cleanUp()
 	if err := c.PreCompilationTask(submission); err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
@@ -62,11 +72,13 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 		}
 		*execResults = append(*execResults, execResult)
 	}
+
 	return allPassed, nil
 }
 
 func testCppCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	defer cleanUp()
 	if err := cpp.PreCompilationTask(submission); err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
@@ -84,6 +96,7 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 
 func testPythonCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	defer cleanUp()
 	if err := python.PreCompilationTask(submission); err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
@@ -101,11 +114,30 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 
 func testJavaCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	defer cleanUp()
 	if err := java.PreCompilationTask(submission); err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
 		res, err := java.CheckSubmission(submission, testCase)
+		var execResult models.ExecResult
+		execResult, passed := getExecResults(submission, testCase, res, err)
+		if !passed {
+			allPassed = false
+		}
+		*execResults = append(*execResults, execResult)
+	}
+	return allPassed, nil
+}
+
+func testCSharpCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	defer cleanUp()
+	if err := cs.PreCompilationTask(submission); err != nil {
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
+	}
+	for _, testCase := range testCases {
+		res, err := cs.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -145,4 +177,10 @@ func getExecResults(submission models.Submission, testCase models.TestCase, res 
 		return execResult, true
 	}
 
+}
+
+func cleanUp() {
+	go func() {
+		coderunners.CleanUp()
+	}()
 }
