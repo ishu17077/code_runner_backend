@@ -1,0 +1,1 @@
+docker rm code_runner && docker rmi code_runner:latest && docker compose up
