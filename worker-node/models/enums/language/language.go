@@ -1,6 +1,8 @@
 package language
 
-import "strings"
+import (
+	"strings"
+)
 
 type Language int
 
@@ -9,6 +11,7 @@ const (
 	Cpp
 	Python
 	Java
+	Cs
 )
 
 func (language Language) ToString() string {
@@ -21,6 +24,8 @@ func (language Language) ToString() string {
 		return "python"
 	case Java:
 		return "java"
+	case Cs:
+		return "cs"
 	default:
 		return "c"
 	}
@@ -36,6 +41,8 @@ func LanguageParser(s string) Language {
 		return Python
 	case "java":
 		return Java
+	case "cs":
+		return Cs
 	default:
 		return C
 	}

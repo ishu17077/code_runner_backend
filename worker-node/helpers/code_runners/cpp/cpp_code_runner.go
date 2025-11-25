@@ -1,10 +1,8 @@
 package cpp
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"os/exec"
 	"strings"
 	"time"
@@ -50,44 +48,13 @@ func compileCode(filePath string, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s", err.Error())
 	}
-
 	return nil
 }
 
 func executeCode(binaryFilePath string, stdin string) (string, error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
-	coderunners.SetPermissions(runCmd)
-	stdinPipe, pipErr := runCmd.StdinPipe()
-
-	if pipErr != nil {
-		return "", fmt.Errorf("Error connecting pipe input")
-	}
-
-	var outputBuffer bytes.Buffer
-
-	runCmd.Stdout = &outputBuffer
-
-	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Error executing the compiled binary")
-	}
-	
-	if err := coderunners.SetResourceLimits(runCmd); err != nil {
-		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
-	}
-
-	if _, writeErr := io.WriteString(stdinPipe, stdin); writeErr != nil {
-		return "", fmt.Errorf("Error writing to the input pipe")
-	}
-
-	stdinPipe.Close()
-	if waitErr := runCmd.Wait(); waitErr != nil {
-		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
-	}
-
-	var finalOutput = outputBuffer.String()
-
-	return finalOutput, nil
+	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

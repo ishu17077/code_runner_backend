@@ -1,7 +1,11 @@
 package coderunners
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -24,24 +28,73 @@ func init() {
 	CGroupManager, CGroupFile = SetUpCGroup()
 }
 
-func SaveFile(fileName string, code string) error {
-	err := os.WriteFile(fileName, []byte(code), 0755)
+func SaveFile(filePath string, code string) error {
+	err := os.WriteFile(filePath, []byte(code), 0755)
 	if err != nil {
 		return fmt.Errorf("Cannot save file: %w", err)
 	}
 	return nil
 }
 
+func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
+	SetPermissions(runCmd)
+	stdinPipe, pipeErr := runCmd.StdinPipe()
+	if pipeErr != nil {
+		return "", fmt.Errorf("Error connecting pipe input")
+	}
+
+	var outputBuffer bytes.Buffer
+	runCmd.Stdout = &outputBuffer
+
+	if startErr := runCmd.Start(); startErr != nil {
+		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
+	}
+	if err := SetResourceLimits(runCmd); err != nil {
+		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
+	}
+
+	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
+		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
+	}
+	stdinPipe.Close()
+
+	if waitErr := runCmd.Wait(); waitErr != nil {
+		// If the command was started with a context that timed out, return time limit exceeded.
+		if errors.Is(waitErr, context.DeadlineExceeded) {
+			return "", fmt.Errorf("Time Limit Exceeded")
+		}
+
+		// If process exited with an ExitError, inspect the underlying wait status to detect signals.
+		if exitErr, ok := waitErr.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+				// If the process was terminated by a signal (e.g., SIGKILL from cgroups/OOM), report accordingly.
+				if status.Signaled() {
+					if status.Signal() == syscall.SIGKILL {
+						// Treat SIGKILL as time/resource limit exceeded (commonly cgroup/oom or enforced kill).
+						return "", fmt.Errorf("Time Limit Exceeded")
+					}
+					return "", fmt.Errorf("Process killed by signal: %s", status.Signal())
+				}
+				// Non-zero exit code
+				return "", fmt.Errorf("Process exited with code %d", status.ExitStatus())
+			}
+		}
+
+		// Fallback message for other errors.
+		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
+	}
+
+	return outputBuffer.String(), nil
+}
+
 func SetUpCGroup() (*v3.Manager, *os.File) {
 	var memeoryLimitBytes int64 = 200 * 1024 * 1024
-	var highThresholdBytes int64 = 170 * 1024 * 1024
 	var cpuPeriodMicroSec = uint64(1000000)
 	var cpuQuotaMicroSec = int64(200000)
 	const oomKillEnabledValue = "1"
 	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
 	resources := v3.Resources{
 		Memory: &v3.Memory{
-			High: &highThresholdBytes,
 			Max:  &memeoryLimitBytes,
 			Swap: &[]int64{0}[0],
 		},
@@ -119,7 +172,7 @@ func SetResourceLimits(cmd *exec.Cmd) error {
 }
 
 func CleanUp() {
-	runCmd := exec.Command("rm", "-rf", "/temp/*")
+	runCmd := exec.Command("sh", "-c", "rm -rf /temp/*")
 	_, err := runCmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("Cannot delete temp directory contents")
