@@ -30,7 +30,7 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
 		return currentstatus.SUCCESS, nil
 	}
-	return currentstatus.SUCCESS, fmt.Errorf("Test: #%s Failed", test.Test_id)
+	return currentstatus.FAILED, fmt.Errorf("Test: #%s Failed", test.Test_id)
 }
 
 func executeCode(filePath string, stdin string) (string, error) {
