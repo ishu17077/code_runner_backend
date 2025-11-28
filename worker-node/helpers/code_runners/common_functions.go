@@ -14,6 +14,8 @@ import (
 	v3 "github.com/containerd/cgroups/v3/cgroup2"
 )
 
+//TODO: Impl compiletime security too
+
 var (
 	CGroupFile    *os.File
 	CGroupManager *v3.Manager
@@ -59,27 +61,22 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		// If the command was started with a context that timed out, return time limit exceeded.
+		//? If the command context timed out, rtime limit exceeded.
 		if errors.Is(waitErr, context.DeadlineExceeded) {
 			return "", fmt.Errorf("Time Limit Exceeded")
 		}
-
-		// If process exited with an ExitError, inspect the underlying wait status to detect signals.
+		//? If process exited with an ExitError, inspect the  wait status to detect signals.
 		if exitErr, ok := waitErr.(*exec.ExitError); ok {
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				// If the process was terminated by a signal (e.g., SIGKILL from cgroups/OOM), report accordingly.
 				if status.Signaled() {
 					if status.Signal() == syscall.SIGKILL {
-						// Treat SIGKILL as time/resource limit exceeded (commonly cgroup/oom or enforced kill).
 						return "", fmt.Errorf("Time Limit Exceeded")
 					}
 					return "", fmt.Errorf("Process killed by signal: %s", status.Signal())
 				}
-				// Non-zero exit code
 				return "", fmt.Errorf("Process exited with code %d", status.ExitStatus())
 			}
 		}
-
 		// Fallback message for other errors.
 		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
@@ -100,28 +97,28 @@ func SetUpCGroup() (*v3.Manager, *os.File) {
 		},
 		IO: &v3.IO{
 			Max: []v3.Entry{
-				{
+				{ //? 0 ops per second in all bps(bytes oer sec) and iops
 					Major: maj,
 					Minor: min,
-					Type:  v3.ReadBPS, // Bytes per second
+					Type:  v3.ReadBPS,
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.WriteBPS, // Bytes per second
+					Type:  v3.WriteBPS,
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.ReadIOPS, // I/O Operations per second
+					Type:  v3.ReadIOPS,
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.WriteIOPS, // I/O Operations per second
+					Type:  v3.WriteIOPS,
 					Rate:  0,
 				},
 			},

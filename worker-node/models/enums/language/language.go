@@ -12,6 +12,7 @@ const (
 	Python
 	Java
 	Cs
+	Rust
 )
 
 func (language Language) ToString() string {
@@ -26,6 +27,8 @@ func (language Language) ToString() string {
 		return "java"
 	case Cs:
 		return "cs"
+	case Rust:
+		return "rust"
 	default:
 		return "c"
 	}
@@ -43,6 +46,8 @@ func LanguageParser(s string) Language {
 		return Java
 	case "cs":
 		return Cs
+	case "rust":
+		return Rust
 	default:
 		return C
 	}

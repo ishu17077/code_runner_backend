@@ -13,7 +13,8 @@ import (
 )
 
 const filePath = "/temp/Solution.java"
-const outputPath = "/temp/Solution.class"
+
+// const outputPath = "/temp/Solution.class"
 const className = "Solution"
 const dir = "/temp/"
 
@@ -41,10 +42,10 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 
 func compileCode(filepath, outputDir string) error {
 	cmd := exec.Command("javac", "-d", outputDir, filepath)
-	_, err := cmd.CombinedOutput()
+	res, err := cmd.CombinedOutput()
 
 	if err != nil {
-		return fmt.Errorf("Compilation Failed: %s", err.Error())
+		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}
 	return nil
 }

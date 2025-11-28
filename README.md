@@ -31,7 +31,7 @@ To run it again use the above two command inside this project
 ```bash
 docker container stop code_runner
 docker container rm code_runner
-docker rmi code_runner
+docker rmi code_runner:latest
 ```
 
 > API Calls

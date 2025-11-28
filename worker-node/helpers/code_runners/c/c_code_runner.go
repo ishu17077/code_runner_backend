@@ -42,9 +42,10 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 
 func compileCode(filePath string, outputPath string) error {
 	cmd := exec.Command("gcc", filePath, "-o", outputPath, "-lm")
-	_, err := cmd.CombinedOutput()
+	res, err := cmd.CombinedOutput()
+
 	if err != nil {
-		return fmt.Errorf("Compilation Failed: %s", err.Error())
+		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}
 	// fileMode := os.FileMode(0755)
 	// if chmodErr := os.Chmod("/temp/main", fileMode); chmodErr != nil {
@@ -55,7 +56,7 @@ func compileCode(filePath string, outputPath string) error {
 
 func executeCode(binaryFilePath string, stdin string) (string, error) {
 
-	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
