@@ -10,6 +10,7 @@ import (
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/cpp"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/java"
 	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/python"
+	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/rust"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 	"github.com/ishu17077/code_runner_backend/worker-node/models/enums/language"
@@ -49,6 +50,12 @@ func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase
 
 	case language.Cs:
 		res, err := testCSharpCode(submission, testCases, &execResults)
+		if err != nil || !res {
+			return false, execResults, err
+		}
+		return true, execResults, err
+	case language.Rust:
+		res, err := testRustCode(submission, testCases, &execResults)
 		if err != nil || !res {
 			return false, execResults, err
 		}
@@ -140,6 +147,25 @@ func testCSharpCode(submission models.Submission, testCases []models.TestCase, e
 		res, err := cs.CheckSubmission(submission, testCase)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
+		if !passed {
+			allPassed = false
+		}
+		*execResults = append(*execResults, execResult)
+	}
+	return allPassed, nil
+}
+
+func testRustCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	defer cleanUp()
+	if err := rust.PreCompilationTask(submission); err != nil {
+		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
+	}
+	for _, testCase := range testCases {
+		res, err := rust.CheckSubmission(submission, testCase)
+		var execResult models.ExecResult
+		execResult, passed := getExecResults(submission, testCase, res, err)
+
 		if !passed {
 			allPassed = false
 		}

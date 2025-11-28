@@ -1,4 +1,4 @@
-package cpp
+package rust
 
 import (
 	"context"
@@ -12,19 +12,16 @@ import (
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
-const filePath = "/temp/main.cpp"
-const outputPath = "/temp/main"
+const filePath = "/temp/rustprog.rs"
+const outputPath = "/temp/rustprog"
 
 func PreCompilationTask(submission models.Submission) error {
-
 	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
 		return err
 	}
-
 	if err := compileCode(filePath, outputPath); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -41,9 +38,8 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 	return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
 }
 
-func compileCode(filePath string, outputPath string) error {
-	cmd := exec.Command("g++", filePath, "-o", outputPath)
-
+func compileCode(filePath, outputPath string) error {
+	cmd := exec.Command("rustc", filePath, "-o", outputPath)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -52,10 +48,11 @@ func compileCode(filePath string, outputPath string) error {
 	return nil
 }
 
-func executeCode(binaryFilePath string, stdin string) (string, error) {
+func executeCode(binaryFilePath, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
+
 }

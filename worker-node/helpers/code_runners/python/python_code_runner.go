@@ -34,7 +34,7 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 }
 
 func executeCode(filePath string, stdin string) (string, error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 6*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "python", filePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)

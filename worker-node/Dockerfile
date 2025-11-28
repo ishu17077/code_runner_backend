@@ -14,17 +14,25 @@ FROM alpine:3.22.2
 
 WORKDIR /root/
 
-RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables 
+RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables dotnet9-sdk-aot
 
+#? Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+#? Dotnet
+RUN dotnet tool install -g dotnet-script
+ENV PATH="$PATH:/root/.dotnet/tools"
 RUN export DOTNET_NOLOGO=true
 
+#? Sanity Checks
 RUN rustc --version
 RUN java -version
 RUN gcc --version
+RUN python --version
+RUN dotnet --list-sdks
 
+#? Pre-Code environment set-up 
 RUN mkdir /temp
 USER root
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
