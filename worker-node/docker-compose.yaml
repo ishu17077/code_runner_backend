@@ -16,7 +16,7 @@ services:
     # privileged: true
     # volumes:
     #   - /sys/fs/cgroup:/tmp/cgroup:rw
-
+    env_file: ../.env
     deploy:
       resources:
         limits:
