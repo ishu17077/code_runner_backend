@@ -6,5 +6,7 @@ import (
 )
 
 func TestRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("/initial-test", controllers.InitialTest())
+	incomingRoutes.GET("/tests", controllers.GetTests())
+	incomingRoutes.GET("/tests/:test_id", controllers.GetTest())
+	//TODO: Post and patch routes
 }

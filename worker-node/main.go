@@ -18,8 +18,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
-	router.Use(middlewares.CORSMiddleware())
-	routes.TestRoutes(router)
+	router.Use(middlewares.CORSMiddleware(), middlewares.Authenticate())
+	routes.SubmissionRoutes(router)
 
 	server := &http.Server{
 		Addr:    ":" + port,

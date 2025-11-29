@@ -1,6 +1,8 @@
 package models
 
-import "go.mongodb.org/mongo-driver/v2/bson"
+import (
+	"go.mongodb.org/mongo-driver/v2/bson"
+)
 
 type Submission struct {
 	ID            bson.ObjectID `bson:"_id"`
@@ -10,4 +12,5 @@ type Submission struct {
 	Status        string        `json:"status"`
 	Code          string        `json:"code" binding:"required"`
 	Submission_id string        `json:"submission_id"`
+	Tests         []TestCase    `json:"tests" binding:"required"`
 }
