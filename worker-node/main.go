@@ -2,31 +2,12 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os"
 
-	"github.com/gin-gonic/gin"
-	"github.com/ishu17077/code_runner_backend/worker-node/middlewares"
-	"github.com/ishu17077/code_runner_backend/worker-node/routes"
+	CompositionRoot "github.com/ishu17077/code_runner_backend/worker-node/composition_root"
 )
 
 func main() {
-	port := os.Getenv("WORKER_PORT")
-	if port == "" {
-		port = "8060"
-	}
-
-	router := gin.New()
-	router.Use(gin.Logger(), gin.Recovery())
-	router.Use(middlewares.CORSMiddleware(), middlewares.Authenticate())
-	routes.SubmissionRoutes(router)
-
-	server := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
-	}
-
-	if err := server.ListenAndServe(); err != nil {
+	if err := CompositionRoot.Start(); err != nil {
 		fmt.Printf("Error starting the server: %s\n", err.Error())
 		panic(err)
 	}

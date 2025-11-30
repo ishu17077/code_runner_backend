@@ -5,6 +5,6 @@ import (
 	"github.com/ishu17077/code_runner_backend/worker-node/controllers"
 )
 
-func SubmissionRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("/api/initial-test", controllers.InitialTest())
+func SubmissionRoutes(incomingRoutes *gin.RouterGroup) {
+	incomingRoutes.POST("/initial-test", controllers.InitialTest())
 }
