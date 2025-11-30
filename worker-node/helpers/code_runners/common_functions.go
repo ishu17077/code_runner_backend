@@ -28,9 +28,9 @@ const (
 	min int64 = 0
 )
 
-// func init() {
-// 	CGroupManager, CGroupFile = setUpCGroup()
-// }
+func init() {
+	CGroupManager, CGroupFile = setUpCGroup()
+}
 
 func SaveFile(filePath string, code string) error {
 	err := os.WriteFile(filePath, []byte(code), 0755)
@@ -41,7 +41,7 @@ func SaveFile(filePath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	// setPermissions(runCmd)
+	setPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -53,9 +53,9 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
-	// if err := setResourceLimits(runCmd); err != nil {
-	// 	return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
-	// }
+	if err := setResourceLimits(runCmd); err != nil {
+		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
+	}
 
 	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
 		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
@@ -79,7 +79,6 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 				return "", fmt.Errorf("Process exited with code %d", status.ExitStatus())
 			}
 		}
-		// Fallback message for other errors.
 		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
 	}
 
