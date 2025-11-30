@@ -34,13 +34,13 @@ func Authenticate() gin.HandlerFunc {
 			refreshToken := refreshCookie.Value
 			if err != nil || refreshToken == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Cookie not valid"})
-				clearCookie(c, "token", "refresh_token")
+				ClearCookie(c, "token", "refresh_token")
 				c.Abort()
 				return
 			}
 			if refreshCookie.HttpOnly != true {
 				c.JSON(http.StatusNotAcceptable, gin.H{"error": "Cookie not valid"})
-				clearCookie(c, "token", "refresh_token")
+				ClearCookie(c, "token", "refresh_token")
 				c.Abort()
 				return
 			}
@@ -49,19 +49,21 @@ func Authenticate() gin.HandlerFunc {
 				refreshClaims, refreshTokErr := helpers.ValidateToken(refreshToken)
 				if refreshTokErr != nil || refreshClaims == nil {
 					c.JSON(http.StatusUnauthorized, gin.H{"error": "Tokens expired"})
+					return 
 				}
 				signedToken, signedRefreshToken, err := helpers.GenerateTokens(claims.Username)
 				if err != nil {
 					c.JSON(http.StatusUnauthorized, gin.H{"error": "Sign in again!"})
+					return 
 				}
-				setCookie(c, "token", signedToken)
-				setCookie(c, "refresh_token", signedRefreshToken)
+				SetCookie(c, "token", signedToken)
+				SetCookie(c, "refresh_token", signedRefreshToken)
 				c.Set("username", claims.Username)
 				c.Set("admin", true)
 				c.Next()
 				return
 			}
-			clearCookie(c, "token", "refresh_token")
+			ClearCookie(c, "token", "refresh_token")
 			c.Abort()
 			return
 		}
@@ -72,12 +74,12 @@ func Authenticate() gin.HandlerFunc {
 	}
 }
 
-func setCookie(c *gin.Context, name, value string) {
+func SetCookie(c *gin.Context, name, value string) {
 	//TODO: Set domain as cors hosts && set secure for production environments
 	c.SetCookie(
 		name,
 		value,
-		14400,
+		2160000,
 		"/",
 		"",
 		false,
@@ -85,7 +87,7 @@ func setCookie(c *gin.Context, name, value string) {
 	)
 }
 
-func clearCookie(c *gin.Context, names ...string) {
+func ClearCookie(c *gin.Context, names ...string) {
 	for _, name := range names {
 		c.SetCookie(name, "", -1, "/", "", false, true)
 	}

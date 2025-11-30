@@ -4,7 +4,6 @@ package helpers
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -14,16 +13,6 @@ import (
 type SignedDetails struct {
 	Username string
 	jwt.RegisteredClaims
-}
-
-func init() {
-	if constants.Deployment == "PRODUCTION" && constants.SecretKey == "" {
-		log.Fatalf("JWT_SECRET not set in .env file in PRODUCTION")
-	}
-	if constants.SecretKey == "" {
-		fmt.Printf("JWT_SECRET not set, the tokens would not be signed and secure")
-	}
-
 }
 
 func GenerateTokens(username string) (signedToken, refreshToken string, err error) {

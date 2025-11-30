@@ -1,1 +1,1 @@
-docker build -t code_runner . && docker run --rm -it --cap-add=NET_ADMIN -p 8060:8060 -m 256m --cpus 0.3 code_runner 
+docker build -t code_runner . && docker run --rm -it --cap-add=NET_ADMIN -p 8060:8060 -m 256m --cpus 0.3 --env-file ../.env code_runner

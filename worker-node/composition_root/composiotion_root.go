@@ -18,8 +18,7 @@ func init() {
 	}
 	router = gin.New()
 	router.Use(gin.Logger())
-	
-	
+
 	server = &http.Server{
 		Addr:    ":" + port,
 		Handler: router,
@@ -36,11 +35,9 @@ func Stop() error {
 }
 
 func routesDefine(router *gin.Engine) {
-	testRoutes := router.Group("/test")
 	submissionRoutes := router.Group("/submission")
 	adminRoutes := router.Group("/admin")
 
-	routes.TestRoutes(testRoutes)
 	routes.SubmissionRoutes(submissionRoutes)
 	routes.AdminRoutes(adminRoutes)
 }

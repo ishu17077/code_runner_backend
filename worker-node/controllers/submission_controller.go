@@ -9,22 +9,6 @@ import (
 )
 
 // ! Simple odd even Test
-var init_tests [2]models.TestCase = [2]models.TestCase{
-	{
-		Problem_id:     "69",
-		Is_public:      true,
-		Stdin:          "12\n",
-		ExpectedOutput: "Yes",
-		Test_id:        "1",
-	},
-	{
-		Problem_id:     "69",
-		Is_public:      true,
-		Stdin:          "11\n",
-		ExpectedOutput: "No",
-		Test_id:        "2",
-	},
-}
 
 //TODO: Implement sync.Mutex to handle process flow
 
@@ -33,10 +17,15 @@ func InitialTest() gin.HandlerFunc {
 		var submission models.Submission
 
 		if err := c.ShouldBind(&submission); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request", "msg": err.Error()})
 			return
 		}
-		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, init_tests[:])
+
+		if len(submission.Tests) == 0 {
+			c.JSON(http.StatusNoContent, gin.H{"error": "No tests provided"})
+			return
+		}
+		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
 			return
@@ -47,6 +36,6 @@ func InitialTest() gin.HandlerFunc {
 
 func PrivateTestSubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		
+
 	}
 }

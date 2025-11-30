@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"strings"
 	"time"
 
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
@@ -33,12 +32,7 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 	if err != nil {
 		return currentstatus.FAILED, err
 	}
-
-	if strings.TrimSpace(res) == strings.TrimSpace(test.ExpectedOutput) {
-		return currentstatus.SUCCESS, nil
-	}
-
-	return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", test.ExpectedOutput, res)
+	return coderunners.CheckOutput(res, test.ExpectedOutput)
 }
 
 func compileCode(filePath string, outputPath string) error {

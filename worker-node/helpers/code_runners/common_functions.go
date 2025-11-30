@@ -9,9 +9,11 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 
 	v3 "github.com/containerd/cgroups/v3/cgroup2"
+	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
 //TODO: Impl compiletime security too
@@ -168,10 +170,33 @@ func SetResourceLimits(cmd *exec.Cmd) error {
 	return nil
 }
 
+func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
+	lines := strings.Split(expectedOutput, "\n")
+	outputLines := GetLastLines(actualOutput, len(lines))
+
+	for i, line := range lines {
+		if strings.TrimSpace(line) != strings.TrimSpace(outputLines[i]) {
+			return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+		}
+	}
+	return currentstatus.SUCCESS, nil
+}
+
 func CleanUp() {
 	runCmd := exec.Command("sh", "-c", "rm -rf /temp/*")
 	_, err := runCmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("Cannot delete temp directory contents")
 	}
+}
+
+func GetLastLines(s string, n int) []string {
+	lines := strings.Split(s, "\n")
+	numLines := len(lines)
+
+	if n >= numLines {
+		return lines // Return all lines if n is greater than or equal to the total number of lines
+	}
+
+	return lines[numLines-n:] // Return the last 'n' lines
 }
