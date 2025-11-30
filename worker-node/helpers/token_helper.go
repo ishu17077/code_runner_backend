@@ -5,10 +5,10 @@ package helpers
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/ishu17077/code_runner_backend/worker-node/constants"
 )
 
 type SignedDetails struct {
@@ -16,14 +16,11 @@ type SignedDetails struct {
 	jwt.RegisteredClaims
 }
 
-var secretKey string = os.Getenv("JWT_SECRET")
-var deployment string = os.Getenv("DEPLOYMENT")
-
 func init() {
-	if deployment == "PRODUCTION" && secretKey == "" {
+	if constants.Deployment == "PRODUCTION" && constants.SecretKey == "" {
 		log.Fatalf("JWT_SECRET not set in .env file in PRODUCTION")
 	}
-	if secretKey == "" {
+	if constants.SecretKey == "" {
 		fmt.Printf("JWT_SECRET not set, the tokens would not be signed and secure")
 	}
 
@@ -45,12 +42,12 @@ func GenerateTokens(username string) (signedToken, refreshToken string, err erro
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	}
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(secretKey))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(constants.SecretKey))
 	if err != nil {
 		panic(err)
 
 	}
-	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(secretKey))
+	refreshToken, err = jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(constants.SecretKey))
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +89,7 @@ func checkToken(signedToken string) (token *jwt.Token, err error) {
 			if token.Method.Alg() != jwt.SigningMethodES256.Alg() {
 				return nil, fmt.Errorf("Unexpected Signing Method")
 			}
-			return []byte(secretKey), nil
+			return []byte(constants.SecretKey), nil
 		})
 	return
 }
