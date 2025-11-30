@@ -28,9 +28,9 @@ const (
 	min int64 = 0
 )
 
-func init() {
-	CGroupManager, CGroupFile = SetUpCGroup()
-}
+// func init() {
+// 	CGroupManager, CGroupFile = setUpCGroup()
+// }
 
 func SaveFile(filePath string, code string) error {
 	err := os.WriteFile(filePath, []byte(code), 0755)
@@ -41,7 +41,7 @@ func SaveFile(filePath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	SetPermissions(runCmd)
+	// setPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -53,9 +53,9 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
-	if err := SetResourceLimits(runCmd); err != nil {
-		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
-	}
+	// if err := setResourceLimits(runCmd); err != nil {
+	// 	return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
+	// }
 
 	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
 		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
@@ -86,7 +86,7 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	return outputBuffer.String(), nil
 }
 
-func SetUpCGroup() (*v3.Manager, *os.File) {
+func setUpCGroup() (*v3.Manager, *os.File) {
 	var memeoryLimitBytes int64 = 200 * 1024 * 1024
 	var cpuPeriodMicroSec = uint64(1000000)
 	var cpuQuotaMicroSec = int64(200000)
@@ -150,7 +150,7 @@ func SetUpCGroup() (*v3.Manager, *os.File) {
 	return manager, cgroupFile
 }
 
-func SetPermissions(cmd *exec.Cmd) {
+func setPermissions(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,
@@ -160,7 +160,7 @@ func SetPermissions(cmd *exec.Cmd) {
 	// CGroupManager.AddProc(syscall.Process)
 }
 
-func SetResourceLimits(cmd *exec.Cmd) error {
+func setResourceLimits(cmd *exec.Cmd) error {
 
 	if err := CGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
 		fmt.Printf("Error adding process to cgroup: %v\n", err)
@@ -171,11 +171,11 @@ func SetResourceLimits(cmd *exec.Cmd) error {
 }
 
 func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
-	lines := strings.Split(expectedOutput, "\n")
-	outputLines := GetLastLines(actualOutput, len(lines))
+	expectedLines := strings.Split(expectedOutput, "\n")
+	outputLines := GetLastLines(actualOutput, len(expectedLines))
 
-	for i, line := range lines {
-		if strings.TrimSpace(line) != strings.TrimSpace(outputLines[i]) {
+	for i, expectedLine := range expectedLines {
+		if strings.TrimSpace(expectedLine) != strings.TrimSpace(outputLines[i]) {
 			return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
 		}
 	}

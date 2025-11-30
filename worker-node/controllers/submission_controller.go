@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,13 @@ func InitialTest() gin.HandlerFunc {
 			c.JSON(http.StatusNoContent, gin.H{"error": "No tests provided"})
 			return
 		}
+		codeBytes, err := base64.StdEncoding.DecodeString(submission.Code)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The provided code is not properly base64 encoded."})
+			return
+		}
+
+		submission.Code = string(codeBytes)
 		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})

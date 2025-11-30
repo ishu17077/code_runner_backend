@@ -7,6 +7,6 @@ type TestCase struct {
 	Problem_id     string        `json:"problem_id" binding:"required"`
 	Is_public      bool          `json:"is_public" binding:"required"`
 	Stdin          string        `json:"stdin" binding:"required"`
-	ExpectedOutput string        `json:"expectedOutput" binding:"required"`
+	ExpectedOutput string        `json:"expected_output" binding:"required"`
 	Test_id        string        `json:"test_id" binding:"required"`
 }
