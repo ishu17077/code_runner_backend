@@ -171,7 +171,10 @@ func setResourceLimits(cmd *exec.Cmd) error {
 }
 
 func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
+	actualOutput = strings.TrimSpace(actualOutput)
+	expectedOutput = strings.TrimSpace(expectedOutput)
 	expectedLines := strings.Split(expectedOutput, "\n")
+
 	outputLines := GetLastLines(actualOutput, len(expectedLines))
 
 	for i, expectedLine := range expectedLines {
@@ -195,8 +198,8 @@ func GetLastLines(s string, n int) []string {
 	numLines := len(lines)
 
 	if n >= numLines {
-		return lines // Return all lines if n is greater than or equal to the total number of lines
+		return lines
 	}
 
-	return lines[numLines-n:] // Return the last 'n' lines
+	return lines[numLines-n:]
 }
