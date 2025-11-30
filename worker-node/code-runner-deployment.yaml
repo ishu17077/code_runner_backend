@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: code-runner
+  name: code-runner
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      io.kompose.service: code-runner
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: code-runner
+    spec:
+      containers:
+        - env:
+            - name: ADMIN_LOGIN
+              valueFrom:
+                configMapKeyRef:
+                  key: ADMIN_LOGIN
+                  name: env
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: ADMIN_PASSWORD
+                  name: env
+            - name: CORS_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: CORS_HOSTS
+                  name: env
+            - name: DEPLOYMENT
+              valueFrom:
+                configMapKeyRef:
+                  key: DEPLOYMENT
+                  name: env
+            - name: JWT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: JWT_SECRET
+                  name: env
+            - name: WORKER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: WORKER_PORT
+                  name: env
+          image: code_runner
+          imagePullPolicy: Never
+          name: code-runner
+          ports:
+            - containerPort: 8060
+          resources:
+            limits:
+              cpu: 300m
+              memory: "268435456"
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

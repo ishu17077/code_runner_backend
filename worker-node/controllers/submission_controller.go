@@ -13,7 +13,7 @@ import (
 
 //TODO: Implement sync.Mutex to handle process flow
 
-func InitialTest() gin.HandlerFunc {
+func TestCode() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var submission models.Submission
 
