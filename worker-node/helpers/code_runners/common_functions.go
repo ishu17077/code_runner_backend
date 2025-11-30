@@ -41,7 +41,7 @@ func SaveFile(filePath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	setPermissions(runCmd)
+	SetPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -53,7 +53,7 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
-	if err := setResourceLimits(runCmd); err != nil {
+	if err := SetResourceLimits(runCmd); err != nil {
 		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
 	}
 
@@ -149,7 +149,7 @@ func setUpCGroup() (*v3.Manager, *os.File) {
 	return manager, cgroupFile
 }
 
-func setPermissions(cmd *exec.Cmd) {
+func SetPermissions(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,
@@ -159,7 +159,7 @@ func setPermissions(cmd *exec.Cmd) {
 	// CGroupManager.AddProc(syscall.Process)
 }
 
-func setResourceLimits(cmd *exec.Cmd) error {
+func SetResourceLimits(cmd *exec.Cmd) error {
 
 	if err := CGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
 		fmt.Printf("Error adding process to cgroup: %v\n", err)

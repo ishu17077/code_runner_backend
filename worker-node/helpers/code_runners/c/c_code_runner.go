@@ -36,9 +36,14 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 }
 
 func compileCode(filePath string, outputPath string) error {
-	cmd := exec.Command("gcc", filePath, "-o", outputPath, "-lm")
-	res, err := cmd.CombinedOutput()
+	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "gcc", filePath, "-o", outputPath, "-lm")
 
+	coderunners.SetPermissions(cmd)
+	res, err := cmd.CombinedOutput()
+	coderunners.SetResourceLimits(cmd)
+	
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}
