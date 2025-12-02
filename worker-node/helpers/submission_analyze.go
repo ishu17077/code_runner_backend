@@ -66,12 +66,13 @@ func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase
 
 func testCCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := c.PreCompilationTask(submission); err != nil {
+	outputPath, dirPath, err := c.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := c.CheckSubmission(submission, testCase)
+		res, err := c.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -85,12 +86,13 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 
 func testCppCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := cpp.PreCompilationTask(submission); err != nil {
+	outputPath, dirPath, err := cpp.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := cpp.CheckSubmission(submission, testCase)
+		res, err := cpp.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -103,12 +105,13 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 
 func testPythonCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := python.PreCompilationTask(submission); err != nil {
+	filePath, dirPath, err := python.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := python.CheckSubmission(submission, testCase)
+		res, err := python.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -121,12 +124,13 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 
 func testJavaCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := java.PreCompilationTask(submission); err != nil {
+	className, dirPath, err := java.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := java.CheckSubmission(submission, testCase)
+		res, err := java.CheckSubmission(submission, testCase, className, dirPath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -139,12 +143,13 @@ func testJavaCode(submission models.Submission, testCases []models.TestCase, exe
 
 func testCSharpCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := cs.PreCompilationTask(submission); err != nil {
+	filePath, dirPath, err := cs.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := cs.CheckSubmission(submission, testCase)
+		res, err := cs.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -157,12 +162,13 @@ func testCSharpCode(submission models.Submission, testCases []models.TestCase, e
 
 func testRustCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	defer cleanUp()
-	if err := rust.PreCompilationTask(submission); err != nil {
+	filePath, dirPath, err := rust.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	for _, testCase := range testCases {
-		res, err := rust.CheckSubmission(submission, testCase)
+		res, err := rust.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 
@@ -205,8 +211,8 @@ func getExecResults(submission models.Submission, testCase models.TestCase, res 
 
 }
 
-func cleanUp() {
-	go func() {
-		coderunners.CleanUp()
-	}()
+func cleanUp(path string) {
+	go func(path string) {
+		coderunners.CleanUp(path)
+	}(path)
 }

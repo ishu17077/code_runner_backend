@@ -14,11 +14,14 @@ FROM alpine:3.22.2
 
 WORKDIR /root/
 
-RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables dotnet9-sdk-aot
+RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop iptables dotnet9-sdk-aot rustup
 
 #? Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV RUST_HOME="/opt/Rust"
+ENV RUSTUP_HOME="$RUST_HOME/.rustup"
+ENV CARGO_HOME="$RUST_HOME/.cargo"
+ENV PATH="/opt/Rust/.cargo/bin:${PATH}"
+RUN rustup-init -y
 
 #? Dotnet
 RUN dotnet tool install -g dotnet-script
@@ -37,8 +40,9 @@ RUN mkdir /temp
 USER root
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
 
-RUN chown executor:root /temp
-RUN chmod 775 /temp
+#! The root will be creating new subdirectories
+# RUN chown -R executor:root /temp
+RUN chmod -R 775 /temp
 # RUN iptables -A OUTPUT -m owner --uid-owner 6969 -j DROP
 
 # RUN mkdir /cgroup

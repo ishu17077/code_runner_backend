@@ -2,7 +2,7 @@
 set -euo pipefail
 
 WORKERS=${WORKERS:-6}
-URL="http://127.0.0.1:31897/submission/test"
+URL="http://127.0.0.1:30080/submission/test"
 DATA_FILE="/tmp/stress_payload.json"
 UA_PREFIX="stress-worker"
 LOGDIR="/tmp/stress-logs"

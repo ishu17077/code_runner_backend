@@ -32,7 +32,16 @@ func init() {
 	CGroupManager, CGroupFile = setUpCGroup()
 }
 
-func SaveFile(filePath string, code string) error {
+func SaveFile(filePath string, dirPath string, code string) error {
+	//! You know it i know it
+	if err := os.MkdirAll(dirPath, 0755); err != nil {
+		return fmt.Errorf("Cannot create new directory: %w", err)
+	}
+
+	if err := os.Chown(dirPath, 6969, 7070); err != nil {
+		return fmt.Errorf("Error chowining directory: %w", err)
+	}
+
 	err := os.WriteFile(filePath, []byte(code), 0755)
 	if err != nil {
 		return fmt.Errorf("Cannot save file: %w", err)
@@ -172,33 +181,34 @@ func SetResourceLimits(cmd *exec.Cmd) error {
 func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
 	actualOutput = strings.TrimSpace(actualOutput)
 	expectedOutput = strings.TrimSpace(expectedOutput)
+
 	expectedLines := strings.Split(expectedOutput, "\n")
 
-	outputLines := GetLastLines(actualOutput, len(expectedLines))
+	outputLines := []string{}
+	if actualOutput != "" {
+		outputLines = strings.Split(actualOutput, "\n")
+	}
+	//! Impossible test pass scenario
+	if len(outputLines) < len(expectedLines) {
+		return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+	}
 
+	start := len(outputLines) - len(expectedLines)
 	for i, expectedLine := range expectedLines {
-		if strings.TrimSpace(expectedLine) != strings.TrimSpace(outputLines[i]) {
+		if strings.TrimSpace(expectedLine) != strings.TrimSpace(outputLines[start+i]) {
 			return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
 		}
 	}
 	return currentstatus.SUCCESS, nil
 }
 
-func CleanUp() {
-	runCmd := exec.Command("sh", "-c", "rm -rf /temp/*")
+func CleanUp(path string) {
+	actualCmd := fmt.Sprintf("rm -rf %s", path)
+	runCmd := exec.Command("sh", "-c", actualCmd)
 	_, err := runCmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("Cannot delete temp directory contents")
 	}
 }
 
-func GetLastLines(s string, n int) []string {
-	lines := strings.Split(s, "\n")
-	numLines := len(lines)
 
-	if n >= numLines {
-		return lines
-	}
-
-	return lines[numLines-n:]
-}

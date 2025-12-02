@@ -9,18 +9,21 @@ import (
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-const filePath = "/temp/main.py"
+func PreCompilationTask(submission models.Submission) (string, string, error) {
+	newId := bson.NewObjectID().Hex()
+	var dirPath = fmt.Sprintf("/temp/%s", newId)
+	var filePath = fmt.Sprintf("%s/main.py", dirPath)
 
-func PreCompilationTask(submission models.Submission) error {
-	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
-		return fmt.Errorf("Error saving the file: %s", err.Error())
+	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
+		return "", dirPath, err
 	}
-	return nil
+	return filePath, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(submission models.Submission, test models.TestCase, filePath string) (currentstatus.CurrentStatus, error) {
 	res, err := executeCode(filePath, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, fmt.Errorf("The test was unsuccessful: %s", err.Error())

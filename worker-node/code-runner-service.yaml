@@ -9,10 +9,12 @@ metadata:
     io.kompose.service: code-runner
   name: code-runner
 spec:
+  type: NodePort
   ports:
-  - name: "8060"
-    port: 8060
-    targetPort: 8060
+    - name: "8060"
+      port: 8060
+      targetPort: 8060
+      nodePort: 30080
   selector:
     io.kompose.service: code-runner
 status:

@@ -9,27 +9,28 @@ import (
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-const filePath = "/temp/Solution.java"
-
 // const outputPath = "/temp/Solution.class"
-const className = "Solution"
-const dir = "/temp/"
 
-func PreCompilationTask(submission models.Submission) error {
-	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
-		return err
-	}
+func PreCompilationTask(submission models.Submission) (string, string, error) {
+	newId := bson.NewObjectID().Hex()
+	var dirPath = fmt.Sprintf("/temp/%s", newId)
+	var filePath = fmt.Sprintf("%s/Solution.java", dirPath)
+	const className = "Solution"
 
-	if err := compileCode(filePath, dir); err != nil {
-		return err
+	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
+		return "", dirPath, err
 	}
-	return nil
+	if err := compileCode(filePath, dirPath); err != nil {
+		return "", dirPath, err
+	}
+	return className, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
-	res, err := executeCode(dir, className, test.Stdin)
+func CheckSubmission(submission models.Submission, test models.TestCase, className, dirPath string) (currentstatus.CurrentStatus, error) {
+	res, err := executeCode(dirPath, className, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err
 	}
@@ -39,12 +40,12 @@ func CheckSubmission(submission models.Submission, test models.TestCase) (curren
 func compileCode(filepath, outputDir string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
 	cmd := exec.CommandContext(ctx, "javac", "-d", outputDir, filepath)
+	
 	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
-
 	coderunners.SetResourceLimits(cmd)
+	
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}

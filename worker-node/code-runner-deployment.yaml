@@ -24,37 +24,41 @@ spec:
         io.kompose.service: code-runner
     spec:
       containers:
-        - env:
-            - name: ADMIN_LOGIN
-              valueFrom:
-                configMapKeyRef:
-                  key: ADMIN_LOGIN
-                  name: env
-            - name: ADMIN_PASSWORD
-              valueFrom:
-                configMapKeyRef:
-                  key: ADMIN_PASSWORD
-                  name: env
-            - name: CORS_HOSTS
-              valueFrom:
-                configMapKeyRef:
-                  key: CORS_HOSTS
-                  name: env
-            - name: DEPLOYMENT
-              valueFrom:
-                configMapKeyRef:
-                  key: DEPLOYMENT
-                  name: env
-            - name: JWT_SECRET
-              valueFrom:
-                configMapKeyRef:
-                  key: JWT_SECRET
-                  name: env
-            - name: WORKER_PORT
-              valueFrom:
-                configMapKeyRef:
-                  key: WORKER_PORT
-                  name: env
+        - envFrom:
+            - configMapRef:
+                name: env
+                optional: true
+        # - env:
+        #     - name: ADMIN_LOGIN
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: ADMIN_LOGIN
+        #           name: env
+        #     - name: ADMIN_PASSWORD
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: ADMIN_PASSWORD
+        #           name: env
+        #     - name: CORS_HOSTS
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: CORS_HOSTS
+        #           name: env
+        #     - name: DEPLOYMENT
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: DEPLOYMENT
+        #           name: env
+        #     - name: JWT_SECRET
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: JWT_SECRET
+        #           name: env
+        #     - name: WORKER_PORT
+        #       valueFrom:
+        #         configMapKeyRef:
+        #           key: WORKER_PORT
+        #           name: env
           image: code_runner
           imagePullPolicy: Never
           name: code-runner

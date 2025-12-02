@@ -9,26 +9,27 @@ import (
 	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-const filePath = "/temp/main.cpp"
-const outputPath = "/temp/main"
+func PreCompilationTask(submission models.Submission) (string, string, error) {
 
-func PreCompilationTask(submission models.Submission) error {
+	newId := bson.NewObjectID().Hex()
+	var dirPath = fmt.Sprintf("/temp/%s", newId)
+	var filePath = fmt.Sprintf("%s/main.cpp", dirPath)
+	var outputPath = fmt.Sprintf("%s/main", dirPath)
 
-	if err := coderunners.SaveFile(filePath, submission.Code); err != nil {
-		return err
+	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
+		return "", dirPath, err
 	}
-
 	if err := compileCode(filePath, outputPath); err != nil {
-		return err
+		return filePath, dirPath, err
 	}
-
-	return nil
+	return outputPath, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase) (currentstatus.CurrentStatus, error) {
-	res, err := executeCode(outputPath, test.Stdin)
+func CheckSubmission(submission models.Submission, test models.TestCase, binaryFile string) (currentstatus.CurrentStatus, error) {
+	res, err := executeCode(binaryFile, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err
 	}
