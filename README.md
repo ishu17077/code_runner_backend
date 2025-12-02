@@ -59,6 +59,22 @@ sudo apt install kind
 kind create cluster
 ```
 
+> Create Environment Variable Map in kubernetes
+
+Create .env file in /worker-node directory
+
+```bash
+cp ./.env.sample ./.env 
+```
+
+Now provide values into .env
+
+> Create a configmap in kubernetes from .env file
+
+```bash
+kubectl create configmap env --from-file ./.env
+```
+
 > Now apply the kubernetes conf
 
 ```bash
