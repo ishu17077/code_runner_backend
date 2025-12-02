@@ -1,3 +1,4 @@
 /github_ssh_key
 /github_ssh_key.pub
-/.env
+/**/.env
+/**/env-configmap.yaml
