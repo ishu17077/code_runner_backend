@@ -4,7 +4,7 @@
 
 **Note:** This project must run inside Docker because it uses specific users and permissions.
 
-> Clone the repo
+### Clone the repo
 
 ```bash
 git clone https://github.com/ishu17077/code_runner_backend
@@ -95,6 +95,7 @@ Now provide values into .env
 ```bash
 kubectl create configmap env --from-file ./.env
 ``` -->
+##### Secret Config
 
 **Note:** For new method, use this:
 
@@ -124,3 +125,84 @@ minikube service code-runner
 ```bash
 minikube dashboard
 ```
+
+### To use with more production grade microk8s instead of minikube(New New Method)
+
+```bash
+cd worker-node
+```
+
+> Install microk8s
+
+```bash
+sudo apt install snapd
+sudo snap install microk8s --classic
+```
+
+**Note:** For Fedora use sudo dnf install snapd instead of first command
+
+> Build the image and output it using docker
+>> 1
+
+```bash
+docker build -t code_runner . 
+```
+
+>> 2
+
+```bash
+docker save -o ../code_runner.tar code_runner
+```
+
+> Import image in microk8s
+
+```bash
+microk8s images import ./code_runner.tar
+```
+
+> Check if image is present
+
+```bash
+microk8s ctr images ls | grep code_runner
+```
+
+If present all good, else rever to building the image again and importing it.
+
+> Now applying kubernetes config and secrets
+
+```bash
+microk8s kubectl apply -f ./code-runner-config.yaml
+microk8s kubectl apply -f ./code-runner-secret.yaml
+```
+
+**Note:** You must create these files from template mentioned [here](#secret-config)</a>
+
+> Deploy and services
+
+```bash
+microk8s kuberctl apply -f ./code-runner-deployment.yaml
+microk8s kuberctl apply -f ./code-runner-service.yaml
+```
+
+> Check the deployment
+
+```bash
+microk8s kuberctl get pods
+```
+
+Choose any pod and describe
+
+```bash
+microk8s kuberctl get code-runner-*
+```
+
+**Note:** * is any pod id you found
+
+#### Enable dashboard(optional)
+
+```bash
+microk8s enable dashboard
+microk8s dashboard-proxy
+```
+
+**Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
