@@ -2,3 +2,5 @@
 /github_ssh_key.pub
 /**/.env
 /**/env-configmap.yaml
+/**/*-secret.yaml
+/**/code_runner.tar

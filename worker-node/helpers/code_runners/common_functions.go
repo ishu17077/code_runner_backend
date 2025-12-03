@@ -207,8 +207,6 @@ func CleanUp(path string) {
 	runCmd := exec.Command("sh", "-c", actualCmd)
 	_, err := runCmd.CombinedOutput()
 	if err != nil {
-		log.Fatalf("Cannot delete temp directory contents")
+		fmt.Printf("Cannot delete temp directory contents")
 	}
 }
-
-

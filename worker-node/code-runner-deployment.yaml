@@ -26,39 +26,11 @@ spec:
       containers:
         - envFrom:
             - configMapRef:
-                name: env
+                name: code-runner-config
                 optional: true
-          # - env:
-          #     - name: ADMIN_LOGIN
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: ADMIN_LOGIN
-          #           name: env
-          #     - name: ADMIN_PASSWORD
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: ADMIN_PASSWORD
-          #           name: env
-          #     - name: CORS_HOSTS
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: CORS_HOSTS
-          #           name: env
-          #     - name: DEPLOYMENT
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: DEPLOYMENT
-          #           name: env
-          #     - name: JWT_SECRET
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: JWT_SECRET
-          #           name: env
-          #     - name: WORKER_PORT
-          #       valueFrom:
-          #         configMapKeyRef:
-          #           key: WORKER_PORT
-          #           name: env
+            - secretRef:
+                name: code-runner-secret
+                optional: true #? For now
           image: code_runner
           imagePullPolicy: Never
           name: code-runner
@@ -67,7 +39,10 @@ spec:
           resources:
             limits:
               cpu: 300m
-              memory: "268435456"
+              memory: "256Mi"
+            requests:
+              cpu: 200m
+              memory: "200Mi"
           securityContext:
             capabilities:
               add:
@@ -76,3 +51,35 @@ spec:
       serviceAccountName: ""
       # volumes: null
 status: {}
+
+  # - env:
+  #     - name: ADMIN_LOGIN
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: ADMIN_LOGIN
+  #           name: env
+  #     - name: ADMIN_PASSWORD
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: ADMIN_PASSWORD
+  #           name: env
+  #     - name: CORS_HOSTS
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: CORS_HOSTS
+  #           name: env
+  #     - name: DEPLOYMENT
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: DEPLOYMENT
+  #           name: env
+  #     - name: JWT_SECRET
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: JWT_SECRET
+  #           name: env
+  #     - name: WORKER_PORT
+  #       valueFrom:
+  #         configMapKeyRef:
+  #           key: WORKER_PORT
+  #           name: env

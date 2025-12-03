@@ -17,7 +17,10 @@ import (
 func PreCompilationTask(submission models.Submission) (string, string, error) {
 	newId := bson.NewObjectID().Hex()
 	var dirPath = fmt.Sprintf("/temp/%s", newId)
-	var filePath = fmt.Sprintf("%s/prog.cs", dirPath)
+	var filePath = fmt.Sprintf("%s/Program.cs", dirPath)
+
+	//TODO: ADD PRECOMPILATION Step with dotnet
+	//! dotnet new console -n HelloWorld Replace Helloword with newId
 
 	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
 		return "", dirPath, err

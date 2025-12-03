@@ -50,16 +50,37 @@ cd worker-node
 
 Install kubernetes and kubectl & docker desktop and click on kubernetes and create kubernetes cluster
 
-> Install KIND(Kunbernetes In Docker)
-
-Find tutorials online for windows
+> Install Containerd Runtime
+You can either use kind or minikube, minikube is preferrable because it has been tested.
+>> Install Minikube
+Install it on your system using [Minikube Tutorial](https://minikube.sigs.k8s.io/docs/start/).
+>> Install KIND(Kunbernetes In Docker)
+Install it on your system using [KIND Tutorial](https://kind.sigs.k8s.io/docs/user/quick-start/).
 
 ```bash
-sudo apt install kind
 kind create cluster
 ```
 
-> Create Environment Variable Map in kubernetes
+> Using Minikube
+
+```bash
+minikube start
+```
+
+> Build Docker image
+
+```bash
+docker build -t code_runner . -o code_runner.tar
+```
+
+> Load image to Minikube
+
+```bash
+minikube load ./code_runner.tar
+```
+
+<!-- > Old Method of creating env
+>> Create Environment Variable Map in kubernetes(Old Method)
 
 Create .env file in /worker-node directory
 
@@ -69,10 +90,18 @@ cp ./.env.sample ./.env
 
 Now provide values into .env
 
-> Create a configmap in kubernetes from .env file
+>> Create a configmap in kubernetes from .env file (Old Method)
 
 ```bash
 kubectl create configmap env --from-file ./.env
+``` -->
+
+**Note:** For new method, use this:
+
+>> First create code-runner-secret.yaml from code-runner-secret.sample.yaml provided. (The values must be base64 encoded in the params)
+
+```bash
+kubectl apply -f ./code-runner-config.yaml && kubectl apply -f ./code-runner-secret.yaml
 ```
 
 > Now apply the kubernetes conf
@@ -82,4 +111,16 @@ kubectl apply -f ./code-runner-deployment.yaml
 kubectl apply -f ./code-runner-service.yaml
 ```
 
-**Note:** The kubernetes is set up with load balancer with different pod, so it will be accessible via 30080 port instead of 8060 with docker
+> Now we need to get a port exposed from minikube
+
+```bash
+minikube service code-runner
+```
+
+**Note:** The kubernetes is set up with load balancer with different pod, so it will be accessible via 30080 port instead of 8060 with docker-desktop kubernetes, but with minikube it would be running on port provided by above command
+
+> Access minikube dashboard
+
+```bash
+minikube dashboard
+```

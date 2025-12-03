@@ -4,7 +4,7 @@ metadata:
   annotations:
     kompose.cmd: /snap/kompose/19/kompose-linux-amd64 convert
     kompose.version: 1.21.0 (992df58d8)
-  creationTimestamp: null
+  # creationTimestamp: null
   labels:
     io.kompose.service: code-runner
   name: code-runner
@@ -12,9 +12,9 @@ spec:
   type: NodePort
   ports:
     - name: "8060"
-      port: 8060
+      port: 8060 #? Expose port of service
       targetPort: 8060
-      nodePort: 30080
+      nodePort: 30080 #? Load Balancer port
   selector:
     io.kompose.service: code-runner
 status:
