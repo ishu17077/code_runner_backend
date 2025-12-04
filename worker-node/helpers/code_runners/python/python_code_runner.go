@@ -26,7 +26,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 func CheckSubmission(submission models.Submission, test models.TestCase, filePath string) (currentstatus.CurrentStatus, error) {
 	res, err := executeCode(filePath, test.Stdin)
 	if err != nil {
-		return currentstatus.FAILED, fmt.Errorf("The test was unsuccessful: %s", err.Error())
+		return currentstatus.FAILED, err
 	}
 	return coderunners.CheckOutput(res, test.ExpectedOutput)
 }

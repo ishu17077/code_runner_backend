@@ -2,11 +2,10 @@
 set -euo pipefail
 
 WORKERS=${WORKERS:-6}
-URL="http://127.0.0.1:30080/submission/test"
+URL="http://127.0.0.1:30080/submission/test/private"
 DATA_FILE="/tmp/stress_payload.json"
 UA_PREFIX="stress-worker"
-LOGDIR="/tmp/stress-logs"
-mkdir -p "$LOGDIR"
+LOGDIR="/tmp/stress.json"
 
 cat > "$DATA_FILE" <<'JSON'
 {
@@ -15,6 +14,27 @@ cat > "$DATA_FILE" <<'JSON'
   "code":"aW1wb3J0IGphdmEudXRpbC5TY2FubmVyOwoKcHVibGljIGNsYXNzIFNvbHV0aW9uIHsKICAgIHB1YmxpYyBzdGF0aWMgdm9pZCBtYWluKFN0cmluZ1tdIGFyZ3MpIHsKICAgICAgICBTY2FubmVyIHNjID0gbmV3IFNjYW5uZXIoU3lzdGVtLmluKTsKICAgICAgICBpbnQgeCA9IHNjLm5leHRJbnQoKTsKICAgICAgICBpZiAoeCAlIDIgPT0gMCkgewogICAgICAgICAgICBTeXN0ZW0ub3V0LnByaW50bG4oIlllcyIpOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIFN5c3RlbS5vdXQucHJpbnRsbigiTm8iKTsKICAgICAgICB9CiAgICAgICAgc2MuY2xvc2UoKTsKICAgIH0KfQo=",
   "tests":[
     {"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},
+    {"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
+    {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"},{"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},
     {"problem_id":"69","is_public":true,"stdin":"11\n","expected_output":"No","test_id":"2"}
   ]
 }
@@ -37,7 +57,7 @@ seq 1 "$WORKERS" | xargs -n1 -P "$WORKERS" -I{} bash -c '
       -H "Content-Type: application/json" \
       -H "User-Agent: '"$UA_PREFIX"'-{}" \
       -H "Connection: close" \
-      --data @'"$DATA_FILE"'
+      --data @'"$DATA_FILE"' >> /tmp/stress.json
     # small sleep to avoid tight busy-loop if you need it
     # sleep 0.01
   done

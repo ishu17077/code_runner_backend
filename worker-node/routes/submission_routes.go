@@ -6,5 +6,6 @@ import (
 )
 
 func SubmissionRoutes(incomingRoutes *gin.RouterGroup) {
-	incomingRoutes.POST("/test", controllers.TestCode())
+	incomingRoutes.POST("/test/public", controllers.PublicTestSubmission())
+	incomingRoutes.POST("/test/private", controllers.PrivateTestSubmission())
 }

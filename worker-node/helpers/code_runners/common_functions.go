@@ -16,11 +16,11 @@ import (
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
-//TODO: Impl compiletime security too
+var TleError error = fmt.Errorf("Time Limit Exceeded")
 
 var (
-	CGroupFile    *os.File
-	CGroupManager *v3.Manager
+	cGroupFile    *os.File
+	cGroupManager *v3.Manager
 )
 
 const (
@@ -29,7 +29,7 @@ const (
 )
 
 func init() {
-	CGroupManager, CGroupFile = setUpCGroup()
+	cGroupManager, cGroupFile = setUpCGroup()
 }
 
 func SaveFile(filePath string, dirPath string, code string) error {
@@ -74,14 +74,15 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	if waitErr := runCmd.Wait(); waitErr != nil {
 		//? If the command context timed out, rtime limit exceeded.
 		if errors.Is(waitErr, context.DeadlineExceeded) {
-			return "", fmt.Errorf("Time Limit Exceeded")
+
+			return "", TleError
 		}
 		//? If process exited with an ExitError, inspect the  wait status to detect signals.
 		if exitErr, ok := waitErr.(*exec.ExitError); ok {
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 				if status.Signaled() {
 					if status.Signal() == syscall.SIGKILL {
-						return "", fmt.Errorf("Time Limit Exceeded")
+						return "", TleError
 					}
 					return "", fmt.Errorf("Process killed by signal: %s", status.Signal())
 				}
@@ -95,40 +96,42 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 }
 
 func setUpCGroup() (*v3.Manager, *os.File) {
-	var memeoryLimitBytes int64 = 200 * 1024 * 1024
+	var memeoryLimitBytes int64 = 180 * 1024 * 1024
+	var highThresholdBytes int64 = 150 * 1024 * 1024
 	var cpuPeriodMicroSec = uint64(1000000)
 	var cpuQuotaMicroSec = int64(200000)
 	const oomKillEnabledValue = "1"
 	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
 	resources := v3.Resources{
 		Memory: &v3.Memory{
+			High: &highThresholdBytes,
 			Max:  &memeoryLimitBytes,
 			Swap: &[]int64{0}[0],
 		},
 		IO: &v3.IO{
 			Max: []v3.Entry{
-				{ //? 0 ops per second in all bps(bytes oer sec) and iops
+				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.ReadBPS,
+					Type:  v3.ReadBPS, // Bytes per second
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.WriteBPS,
+					Type:  v3.WriteBPS, // Bytes per second
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.ReadIOPS,
+					Type:  v3.ReadIOPS, // I/O Operations per second
 					Rate:  0,
 				},
 				{
 					Major: maj,
 					Minor: min,
-					Type:  v3.WriteIOPS,
+					Type:  v3.WriteIOPS, // I/O Operations per second
 					Rate:  0,
 				},
 			},
@@ -170,7 +173,7 @@ func SetPermissions(cmd *exec.Cmd) {
 
 func SetResourceLimits(cmd *exec.Cmd) error {
 
-	if err := CGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
+	if err := cGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
 		fmt.Printf("Error adding process to cgroup: %v\n", err)
 		cmd.Process.Kill()
 		return fmt.Errorf("Unable to attach to cgroup")
