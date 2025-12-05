@@ -9,7 +9,7 @@ metadata:
     io.kompose.service: code-runner
   name: code-runner
 spec:
-  replicas: 6 #! With 20 pods it was more than stable to sustain anything with microk8s
+  replicas: 6 #! With 35 pods it was more than stable to sustain anything with microk8s
   selector:
     matchLabels:
       io.kompose.service: code-runner
@@ -42,7 +42,7 @@ spec:
               memory: "256Mi"
             requests:
               cpu: 200m
-              memory: "200Mi"
+              memory: "120Mi"
           securityContext:
             capabilities:
               add:

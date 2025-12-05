@@ -97,9 +97,9 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 
 func setUpCGroup() (*v3.Manager, *os.File) {
 	var memeoryLimitBytes int64 = 180 * 1024 * 1024
-	var highThresholdBytes int64 = 150 * 1024 * 1024
+	var highThresholdBytes int64 = 120 * 1024 * 1024
 	var cpuPeriodMicroSec = uint64(1000000)
-	var cpuQuotaMicroSec = int64(200000)
+	var cpuQuotaMicroSec = int64(800000)
 	const oomKillEnabledValue = "1"
 	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
 	resources := v3.Resources{
