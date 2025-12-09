@@ -5,7 +5,7 @@ metadata:
     io.kompose.service: code-runner
   name: code-runner
 spec:
-  replicas: 6
+  replicas: 1
   selector:
     matchLabels:
       io.kompose.service: code-runner
@@ -23,7 +23,7 @@ spec:
             - secretRef:
                 name: code-runner-secret
                 optional: true
-          image: code_runner
+          image: code-runner
           imagePullPolicy: Never
           name: code-runner
           ports:

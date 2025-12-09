@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: warm-runner
 spec:
+  replicas: 10 #! For now
   selector:
     matchLabels:
       app: warm-runner
@@ -10,24 +11,26 @@ spec:
     metadata:
       labels:
         app: warm-runner
+        status: ready
     spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 0
-      replicas: 10 #! For now
       containers:
         - name: warm-runner
           image: warm-runner
+          imagePullPolicy: Never
           command: ["sleep", "infinity"]
           resources:
             requests:
               memory: "60Mi"
-              cpu: "300m"
+              cpu: "200m"
             limits:
               memory: "150Mi"
-              cpu: "200m"
+              cpu: "300m"
           securityContext:
             capabilities:
               drop: ["ALL"]
             # runAsNonRoot: true
             # runAsUser:
             readOnlyRootFilesystem: false
+            //TODO: Disable internet

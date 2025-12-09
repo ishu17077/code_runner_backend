@@ -116,7 +116,7 @@ func (k *K8sManager) execInPod(podName string, cmd []string, stdin []byte) (stri
 
 	option := &corev1.PodExecOptions{
 		Command:   cmd,
-		Container: "code-runner",
+		Container: "warm-runner",
 		Stdin:     len(stdin) > 0,
 		Stdout:    true,
 		Stderr:    true,

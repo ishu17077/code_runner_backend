@@ -42,7 +42,6 @@ func compileCode(filePath, outputPath string) error {
 
 	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
-	coderunners.SetResourceLimits(cmd)
 
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))

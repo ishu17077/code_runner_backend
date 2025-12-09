@@ -6,31 +6,29 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
 	"syscall"
 
-	v3 "github.com/containerd/cgroups/v3/cgroup2"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
 
 var TleError error = fmt.Errorf("Time Limit Exceeded")
 
-var (
-	cGroupFile    *os.File
-	cGroupManager *v3.Manager
-)
+// var (
+// 	cGroupFile    *os.File
+// 	cGroupManager *v3.Manager
+// )
 
 const (
 	maj int64 = 8
 	min int64 = 0
 )
 
-func init() {
-	cGroupManager, cGroupFile = setUpCGroup()
-}
+// func init() {
+// 	cGroupManager, cGroupFile = setUpCGroup()
+// }
 
 func SaveFile(filePath string, dirPath string, code string) error {
 	//! You know it i know it
@@ -62,9 +60,6 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
-	if err := SetResourceLimits(runCmd); err != nil {
-		return "", fmt.Errorf("Unable to set resource limit: %s", err.Error())
-	}
 
 	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
 		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
@@ -95,71 +90,71 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	return outputBuffer.String(), nil
 }
 
-func setUpCGroup() (*v3.Manager, *os.File) {
-	var memeoryLimitBytes int64 = 180 * 1024 * 1024
-	var highThresholdBytes int64 = 120 * 1024 * 1024
-	var cpuPeriodMicroSec = uint64(1000000)
-	var cpuQuotaMicroSec = int64(800000)
-	const oomKillEnabledValue = "1"
-	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
-	resources := v3.Resources{
-		Memory: &v3.Memory{
-			High: &highThresholdBytes,
-			Max:  &memeoryLimitBytes,
-			Swap: &[]int64{0}[0],
-		},
-		IO: &v3.IO{
-			Max: []v3.Entry{
-				{
-					Major: maj,
-					Minor: min,
-					Type:  v3.ReadBPS, // Bytes per second
-					Rate:  0,
-				},
-				{
-					Major: maj,
-					Minor: min,
-					Type:  v3.WriteBPS, // Bytes per second
-					Rate:  0,
-				},
-				{
-					Major: maj,
-					Minor: min,
-					Type:  v3.ReadIOPS, // I/O Operations per second
-					Rate:  0,
-				},
-				{
-					Major: maj,
-					Minor: min,
-					Type:  v3.WriteIOPS, // I/O Operations per second
-					Rate:  0,
-				},
-			},
-		},
+// func setUpCGroup() (*v3.Manager, *os.File) {
+// 	var memeoryLimitBytes int64 = 180 * 1024 * 1024
+// 	var highThresholdBytes int64 = 120 * 1024 * 1024
+// 	var cpuPeriodMicroSec = uint64(1000000)
+// 	var cpuQuotaMicroSec = int64(800000)
+// 	const oomKillEnabledValue = "1"
+// 	// cpuLimitString := fmt.Sprintf("%d %d", cpuQuotaMicroSec, cpuPeriodMicroSec)
+// 	resources := v3.Resources{
+// 		Memory: &v3.Memory{
+// 			High: &highThresholdBytes,
+// 			Max:  &memeoryLimitBytes,
+// 			Swap: &[]int64{0}[0],
+// 		},
+// 		IO: &v3.IO{
+// 			Max: []v3.Entry{
+// 				{
+// 					Major: maj,
+// 					Minor: min,
+// 					Type:  v3.ReadBPS, // Bytes per second
+// 					Rate:  0,
+// 				},
+// 				{
+// 					Major: maj,
+// 					Minor: min,
+// 					Type:  v3.WriteBPS, // Bytes per second
+// 					Rate:  0,
+// 				},
+// 				{
+// 					Major: maj,
+// 					Minor: min,
+// 					Type:  v3.ReadIOPS, // I/O Operations per second
+// 					Rate:  0,
+// 				},
+// 				{
+// 					Major: maj,
+// 					Minor: min,
+// 					Type:  v3.WriteIOPS, // I/O Operations per second
+// 					Rate:  0,
+// 				},
+// 			},
+// 		},
 
-		CPU: &v3.CPU{
+// 		CPU: &v3.CPU{
 
-			Max: v3.NewCPUMax(
-				&cpuQuotaMicroSec,
-				&cpuPeriodMicroSec,
-			),
-		},
-	}
+// 			Max: v3.NewCPUMax(
+// 				&cpuQuotaMicroSec,
+// 				&cpuPeriodMicroSec,
+// 			),
+// 		},
+// 	}
 
-	cGroupPath := "/code_runner"
-	manager, err := v3.NewManager("/cgroup/", cGroupPath, &resources)
-	if err != nil {
-		log.Fatalf("Error setting new manager for C group %s", err.Error())
-	}
-	cgroupFile, err := os.OpenFile("/cgroup/code_runner", os.O_RDONLY, 0)
-	if err != nil {
-		log.Fatalf("Failed to create a CGroup File")
-	}
-	if err := os.WriteFile("/cgroup/code_runner/memory.oom.group", []byte(oomKillEnabledValue), 0644); err != nil {
-		log.Fatalf("Error setting up OOM killer")
-	}
-	return manager, cgroupFile
-}
+// 	cGroupPath := "/code_runner"
+// 	manager, err := v3.NewManager("/cgroup/", cGroupPath, &resources)
+// 	if err != nil {
+// 		log.Fatalf("Error setting new manager for C group %s", err.Error())
+// 	}
+// 	cgroupFile, err := os.OpenFile("/cgroup/code_runner", os.O_RDONLY, 0)
+// 	if err != nil {
+// 		log.Fatalf("Failed to create a CGroup File")
+// 	}
+// 	if err := os.WriteFile("/cgroup/code_runner/memory.oom.group", []byte(oomKillEnabledValue), 0644); err != nil {
+// 		log.Fatalf("Error setting up OOM killer")
+// 	}
+// 	return manager, cgroupFile
+// }
 
 func SetPermissions(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{
@@ -171,15 +166,15 @@ func SetPermissions(cmd *exec.Cmd) {
 	// CGroupManager.AddProc(syscall.Process)
 }
 
-func SetResourceLimits(cmd *exec.Cmd) error {
+// func SetResourceLimits(cmd *exec.Cmd) error {
 
-	if err := cGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
-		fmt.Printf("Error adding process to cgroup: %v\n", err)
-		cmd.Process.Kill()
-		return fmt.Errorf("Unable to attach to cgroup")
-	}
-	return nil
-}
+// 	if err := cGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
+// 		fmt.Printf("Error adding process to cgroup: %v\n", err)
+// 		cmd.Process.Kill()
+// 		return fmt.Errorf("Unable to attach to cgroup")
+// 	}
+// 	return nil
+// }
 
 func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
 	actualOutput = strings.TrimSpace(actualOutput)

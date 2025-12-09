@@ -28,7 +28,7 @@ kind: RoleBinding
 metadata:
   name: code-runner-manager-binding
   namespace: default
-subject:
+subjects:
   - kind: ServiceAccount
     name: code-runner-manager-sa
     namespace: default

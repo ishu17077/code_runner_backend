@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"time"
 
-	coderunners "github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -43,8 +43,6 @@ func compileCode(filePath string, outputPath string) error {
 
 	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
-	coderunners.SetResourceLimits(cmd)
-
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}
