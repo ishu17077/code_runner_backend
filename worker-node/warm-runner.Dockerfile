@@ -1,0 +1,50 @@
+FROM golang:1.25.5-alpine3.23 AS golang
+WORKDIR /app
+
+COPY ./go.mod .
+COPY ./go.sum .
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./runner ./runner
+
+FROM alpine:3.23
+
+WORKDIR /root/
+
+RUN apk add curl build-base openjdk17 python3 py3-pip cgroup-tools htop dotnet9-sdk-aot rustup go
+
+#? Rust
+ENV RUST_HOME="/opt/Rust"
+ENV RUSTUP_HOME="$RUST_HOME/.rustup"
+ENV CARGO_HOME="$RUST_HOME/.cargo"
+ENV PATH="/opt/Rust/.cargo/bin:${PATH}"
+RUN rustup-init -y
+
+#? Dotnet
+RUN dotnet tool install -g dotnet-script
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN export DOTNET_NOLOGO=true
+
+#? Sanity Checks
+RUN rustc --version
+RUN java -version
+RUN gcc --version
+RUN python --version
+RUN dotnet --list-sdks
+
+USER root
+
+RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
+
+RUN mkdir /temp
+RUN chmod -R 755 /temp
+
+RUN echo "root:1923934edfdfKLJHDKJkwfjkf" | chpasswd 
+
+COPY --from=golang --chown=root:root /app/runner/runner .
+RUN chmod 700 ./runner
+
+CMD ["sleep", "infinity"]

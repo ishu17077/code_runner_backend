@@ -49,12 +49,12 @@ func Authenticate() gin.HandlerFunc {
 				refreshClaims, refreshTokErr := helpers.ValidateToken(refreshToken)
 				if refreshTokErr != nil || refreshClaims == nil {
 					c.JSON(http.StatusUnauthorized, gin.H{"error": "Tokens expired"})
-					return 
+					return
 				}
 				signedToken, signedRefreshToken, err := helpers.GenerateTokens(claims.Username)
 				if err != nil {
 					c.JSON(http.StatusUnauthorized, gin.H{"error": "Sign in again!"})
-					return 
+					return
 				}
 				SetCookie(c, "token", signedToken)
 				SetCookie(c, "refresh_token", signedRefreshToken)

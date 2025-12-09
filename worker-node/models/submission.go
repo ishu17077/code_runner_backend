@@ -7,10 +7,10 @@ import (
 type Submission struct {
 	ID            bson.ObjectID `bson:"_id"`
 	Team_id       string        `json:"team_id"`
-	ProblemID     string        `json:"problem_id" binding:"required"`
-	Language      string        `json:"language" binding:"required"`
+	ProblemID     string        `json:"problem_id"`
+	Language      string        `json:"language" binding:"required" validate:"required"`
 	Status        string        `json:"status"`
-	Code          string        `json:"code" binding:"required"`
+	Code          string        `json:"code" binding:"required" validate:"required"`
 	Submission_id string        `json:"submission_id"`
-	Tests         []TestCase    `json:"tests" binding:"required"`
+	Tests         []TestCase    `json:"tests" binding:"required" validate:"required"`
 }

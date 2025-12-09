@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"time"
 
-	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

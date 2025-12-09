@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers"
+	"github.com/ishu17077/code_runner_backend/worker-node/helpers/k8s"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 )
 
@@ -38,12 +38,19 @@ func PublicTestSubmission() gin.HandlerFunc {
 		}
 
 		submission.Code = string(codeBytes)
-		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
+
+		res, err := k8s.K8sMgr.RunOnPod(submission, submission.Tests)
+
 		if err != nil {
-			c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
-			return
+			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
 		}
-		c.JSON(http.StatusOK, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
+		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err.Error()})
+		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
+		// if err != nil {
+		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
+		// 	return
+		// }
+		// c.JSON(http.StatusOK, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
 	}
 }
 
@@ -70,11 +77,18 @@ func PrivateTestSubmission() gin.HandlerFunc {
 		}
 
 		submission.Code = string(codeBytes)
-		allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
+
+		res, err := k8s.K8sMgr.RunOnPod(submission, submission.Tests)
+
 		if err != nil {
-			c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
-			return
+			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
 		}
-		c.JSON(http.StatusOK, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
+		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err.Error()})
+		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
+		// if err != nil {
+		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
+		// 	return
+		// }
+		// c.JSON(http.StatusOK, gin.H{"All tests passed": allOkay, "Execution Result": execResults})
 	}
 }

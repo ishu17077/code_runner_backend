@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warm-runner
+spec:
+  selector:
+    matchLabels:
+      app: warm-runner
+  template:
+    metadata:
+      labels:
+        app: warm-runner
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 0
+      replicas: 10 #! For now
+      containers:
+        - name: warm-runner
+          image: warm-runner
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "60Mi"
+              cpu: "300m"
+            limits:
+              memory: "150Mi"
+              cpu: "200m"
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+            # runAsNonRoot: true
+            # runAsUser:
+            readOnlyRootFilesystem: false

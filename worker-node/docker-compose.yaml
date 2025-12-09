@@ -1,13 +1,26 @@
 version: "3"
 services:
-  code_runner:
+  warm-runner:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: warm-runner.Docker
+    restart: always
+    image: warm-runner
+    container_name: warm-runner
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+          cpus: "0.3"
+
+  code-runner:
+    build:
+      context: .
+      dockerfile: code-runner.Dockerfile
     restart: always
     # ! Just to name image to code_runner
-    image: code_runner
-    container_name: code_runner
+    image: code-runner
+    container_name: code-runner
     ports:
       - 8060:8060
     env_file: ./.env
@@ -16,7 +29,3 @@ services:
         limits:
           memory: 256M
           cpus: "0.3"
-    cap_add:
-      - NET_ADMIN
-    # ! For debugging only
-    # command: ["sleep", "infinity"]

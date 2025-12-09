@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: code-runner
+  name: code-runner
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      io.kompose.service: code-runner
+  template:
+    metadata:
+      labels:
+        io.kompose.service: code-runner
+    spec:
+      serviceAccountName: code-runner-manager-sa
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: code-runner-config
+                optional: true
+            - secretRef:
+                name: code-runner-secret
+                optional: true
+          image: code_runner
+          imagePullPolicy: Never
+          name: code-runner
+          ports:
+            - containerPort: 8060
+          resources:
+            limits:
+              cpu: 300m
+              memory: "256Mi"
+            requests:
+              cpu: 200m
+              memory: "120Mi"
+      restartPolicy: Always

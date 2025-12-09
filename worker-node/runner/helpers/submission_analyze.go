@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	coderunners "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c"
-	cs "github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/c_sharp"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/cpp"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/java"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/python"
-	"github.com/ishu17077/code_runner_backend/worker-node/helpers/code_runners/rust"
 	"github.com/ishu17077/code_runner_backend/worker-node/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 	"github.com/ishu17077/code_runner_backend/worker-node/models/enums/language"
+	coderunners "github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/c"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/c_sharp"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/cpp"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/java"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/python"
+	"github.com/ishu17077/code_runner_backend/worker-node/runner/helpers/code_runners/rust"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -61,6 +61,9 @@ func AnalyzeSubmission(submission models.Submission, testCases []models.TestCase
 			return false, execResults, err
 		}
 		return true, execResults, err
+
+	case language.Undefined:
+		return false, []models.ExecResult{}, fmt.Errorf("Invalid Language Provided")
 	}
 	return false, execResults, nil
 }
@@ -183,14 +186,14 @@ func testJavaCode(submission models.Submission, testCases []models.TestCase, exe
 
 func testCSharpCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	filePath, dirPath, err := cs.PreCompilationTask(submission)
+	filePath, dirPath, err := c_sharp.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	tleErrors := 0
 	for _, testCase := range testCases {
-		res, err := cs.CheckSubmission(submission, testCase, filePath)
+		res, err := c_sharp.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResults(submission, testCase, res, err)
 		if !passed {
@@ -242,7 +245,6 @@ func getExecResults(submission models.Submission, testCase models.TestCase, res 
 	var execResult models.ExecResult = models.ExecResult{
 		ID:         bson.NewObjectID(),
 		Problem_id: submission.ProblemID,
-		Team_id:    submission.Team_id,
 		Test_id:    testCase.Test_id,
 	}
 	execResult.ExecResult_id = execResult.ID.Hex()
