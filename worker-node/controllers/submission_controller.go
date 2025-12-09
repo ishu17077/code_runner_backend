@@ -44,7 +44,7 @@ func PublicTestSubmission() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
 		}
-		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err.Error()})
+		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err})
 		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		// if err != nil {
 		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
@@ -83,7 +83,7 @@ func PrivateTestSubmission() gin.HandlerFunc {
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
 		}
-		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err.Error()})
+		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err})
 		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		// if err != nil {
 		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})

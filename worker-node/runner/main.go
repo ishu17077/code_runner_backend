@@ -66,7 +66,14 @@ func printFinalResult(res models.Result) {
 	fmt.Println("---JSON_START---")
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	enc.Encode(res)
+	jsonData, err := json.Marshal(res)
+	if err != nil {
+		enc.Encode(res)
+		fmt.Println("---JSON_END---")
+		return
+	}
+
+	enc.Encode(jsonData)
 	fmt.Println("---JSON_END---")
 }
 

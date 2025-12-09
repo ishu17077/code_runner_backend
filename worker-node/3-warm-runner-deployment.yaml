@@ -33,4 +33,4 @@ spec:
             # runAsNonRoot: true
             # runAsUser:
             readOnlyRootFilesystem: false
-            //TODO: Disable internet
+#TODO: Disable internet
