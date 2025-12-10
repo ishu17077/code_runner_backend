@@ -5,7 +5,7 @@ metadata:
     io.kompose.service: code-runner
   name: code-runner
 spec:
-  replicas: 1
+  replicas: 6
   selector:
     matchLabels:
       io.kompose.service: code-runner

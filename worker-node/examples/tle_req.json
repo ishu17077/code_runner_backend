@@ -1,0 +1,35 @@
+{
+    "problem_id": "69",
+    "language": "C",
+    "code": "#include <stdio.h>\nint main() {for (;;) {}}",
+    "tests": [
+        {
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "12\n",
+            "expected_output": "Yes\nYes",
+            "test_id": "1"
+        },
+        {
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "11\n",
+            "expected_output": "No\nNo",
+            "test_id": "2"
+        },
+        {
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "11\n",
+            "expected_output": "No\nNo",
+            "test_id": "2"
+        },
+        {
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "11\n",
+            "expected_output": "No\nNo",
+            "test_id": "2"
+        }
+    ]
+}

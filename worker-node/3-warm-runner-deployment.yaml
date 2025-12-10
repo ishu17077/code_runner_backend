@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: warm-runner
 spec:
-  replicas: 10 #! For now
+  replicas: 50 #! For now
   selector:
     matchLabels:
       app: warm-runner
@@ -27,10 +27,13 @@ spec:
             limits:
               memory: "150Mi"
               cpu: "300m"
-          # securityContext:
-            # capabilities:
-              # drop: ["ALL"]
-            # runAsNonRoot: true
-            # runAsUser:
-            # readOnlyRootFilesystem: false
-#TODO: Disable internet
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add:
+                - "SETUID" #? Requirements: switch to user 6969
+                - "SETGID" #? Requirements: switch to grp 7070
+                - "CHOWN" #? Requirements: chowning files
+                - "DAC_OVERRIDE" #? For cleanup
+                - "KILL"

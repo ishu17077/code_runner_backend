@@ -20,7 +20,7 @@ var validate = validator.New()
 
 func main() {
 	inputBytes, err := io.ReadAll(os.Stdin)
-	
+
 	if err != nil {
 		printInternalError("Failed to read stdin", err)
 		return
@@ -52,18 +52,20 @@ func main() {
 	submission.Language = language.LanguageParser(submission.Language).ToString()
 
 	allPassed, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
-
-	var res map[string]any = map[string]any{
-		"allPassed":   allPassed,
-		"execResults": execResults,
-		"error":       nil,
+	var result models.Result = models.Result{
+		Results: execResults,
 	}
-	jsonBytes, err := json.Marshal(res)
+	if allPassed {
+		result.Status = "SUCCESS"
+	} else {
+		result.Status = "FAILED"
+	}
+
 	if err != nil {
-		res["error"] = err.Error()
+		result.Error = err.Error()
 	}
-	fmt.Printf(string(jsonBytes))
 
+	printFinalResult(result)
 	// var result models.Result
 	// result.Results = execResults
 	// if allPassed {
@@ -76,17 +78,15 @@ func main() {
 
 func printFinalResult(res models.Result) {
 	fmt.Println("---JSON_START---")
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
 	jsonData, err := json.Marshal(res)
 	if err != nil {
-		enc.Encode(err.Error())
+		fmt.Printf(err.Error())
 		fmt.Println("---JSON_END---")
 		return
 	}
-
-	enc.Encode(jsonData)
-	fmt.Println("---JSON_END---")
+	base64enc := base64.StdEncoding.EncodeToString(jsonData)
+	fmt.Println(base64enc)
+	fmt.Print("---JSON_END---")
 }
 
 func printInternalError(msg string, err error) {

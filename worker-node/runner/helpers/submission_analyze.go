@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -75,7 +74,7 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := c.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
@@ -84,14 +83,13 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 			allPassed = false
 		}
 		*execResults = append(*execResults, execResult)
-
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 
 	}
@@ -106,7 +104,7 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := cpp.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
@@ -116,13 +114,13 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 		}
 		*execResults = append(*execResults, execResult)
 
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 	}
 	return allPassed, nil
@@ -135,7 +133,7 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := python.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
@@ -144,13 +142,13 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 			allPassed = false
 		}
 		*execResults = append(*execResults, execResult)
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 	}
 	return allPassed, nil
@@ -163,7 +161,7 @@ func testJavaCode(submission models.Submission, testCases []models.TestCase, exe
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := java.CheckSubmission(submission, testCase, className, dirPath)
 		var execResult models.ExecResult
@@ -172,13 +170,13 @@ func testJavaCode(submission models.Submission, testCases []models.TestCase, exe
 			allPassed = false
 		}
 		*execResults = append(*execResults, execResult)
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 	}
 	return allPassed, nil
@@ -191,7 +189,7 @@ func testCSharpCode(submission models.Submission, testCases []models.TestCase, e
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := c_sharp.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
@@ -200,13 +198,13 @@ func testCSharpCode(submission models.Submission, testCases []models.TestCase, e
 			allPassed = false
 		}
 		*execResults = append(*execResults, execResult)
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 	}
 	return allPassed, nil
@@ -219,7 +217,7 @@ func testRustCode(submission models.Submission, testCases []models.TestCase, exe
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	tleErrors := 0
+	errors := 0
 	for _, testCase := range testCases {
 		res, err := rust.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
@@ -229,13 +227,13 @@ func testRustCode(submission models.Submission, testCases []models.TestCase, exe
 		}
 		*execResults = append(*execResults, execResult)
 
-		if errors.Is(err, coderunners.TleError) {
-			tleErrors++
-			if tleErrors > 2 {
+		if err != nil {
+			errors++
+			if errors > 2 {
 				return allPassed, nil
 			}
 		} else {
-			tleErrors = 0
+			errors = 0
 		}
 	}
 	return allPassed, nil

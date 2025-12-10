@@ -41,7 +41,7 @@ func compileCode(filePath string, outputPath string) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "g++", filePath, "-o", outputPath)
 
-	coderunners.SetPermissions(cmd)
+	// coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
@@ -52,7 +52,6 @@ func compileCode(filePath string, outputPath string) error {
 func executeCode(binaryFilePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

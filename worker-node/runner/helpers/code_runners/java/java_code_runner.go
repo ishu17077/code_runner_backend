@@ -42,7 +42,7 @@ func compileCode(filepath, outputDir string) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "javac", "-d", outputDir, filepath)
 
-	coderunners.SetPermissions(cmd)
+	// coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {

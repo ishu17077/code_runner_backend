@@ -2,14 +2,11 @@ package coderunners
 
 import (
 	"bytes"
-	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
-	"syscall"
 
 	currentstatus "github.com/ishu17077/code_runner_backend/worker-node/models/enums/current_status"
 )
@@ -35,7 +32,9 @@ func SaveFile(filePath string, dirPath string, code string) error {
 	if err := os.MkdirAll(dirPath, 0755); err != nil {
 		return fmt.Errorf("Cannot create new directory: %w", err)
 	}
-
+	// if err := os.Chown(dirPath, 6969, 7070); err != nil {
+	// 	return fmt.Errorf("Error chowning file: %w", err)
+	// }
 	err := os.WriteFile(filePath, []byte(code), 0755)
 	if err != nil {
 		return fmt.Errorf("Cannot save file: %w", err)
@@ -44,7 +43,7 @@ func SaveFile(filePath string, dirPath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	SetPermissions(runCmd)
+	// SetPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -63,24 +62,8 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		//? If the command context timed out, rtime limit exceeded.
-		if errors.Is(waitErr, context.DeadlineExceeded) {
-
-			return "", TleError
-		}
-		//? If process exited with an ExitError, inspect the  wait status to detect signals.
-		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				if status.Signaled() {
-					if status.Signal() == syscall.SIGKILL {
-						return "", TleError
-					}
-					return "", fmt.Errorf("Process killed by signal: %s", status.Signal())
-				}
-				return "", fmt.Errorf("Process exited with code %d", status.ExitStatus())
-			}
-		}
-		return "", fmt.Errorf("Resources Limit: Consuming too much resources: %s", waitErr.Error())
+		//? If the command context timed out, time limit exceeded.
+		return "", TleError
 	}
 
 	return outputBuffer.String(), nil
@@ -152,15 +135,15 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 // 	return manager, cgroupFile
 // }
 
-func SetPermissions(cmd *exec.Cmd) {
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Credential: &syscall.Credential{
-			Uid: 6969,
-			Gid: 7070,
-		},
-	}
-	// CGroupManager.AddProc(syscall.Process)
-}
+// func SetPermissions(cmd *exec.Cmd) {
+// 	cmd.SysProcAttr = &syscall.SysProcAttr{
+// 		Credential: &syscall.Credential{
+// 			Uid: 6969,
+// 			Gid: 7070,
+// 		},
+// 	}
+// 	// CGroupManager.AddProc(syscall.Process)
+// }
 
 // func SetResourceLimits(cmd *exec.Cmd) error {
 

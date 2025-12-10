@@ -40,7 +40,7 @@ func compileCode(filePath, outputPath string) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "rustc", filePath, "-o", outputPath)
 
-	coderunners.SetPermissions(cmd)
+	// coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {

@@ -42,7 +42,7 @@ func compileCode(filePath string, outputPath string) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "gcc", filePath, "-o", outputPath, "-lm")
 
-	coderunners.SetPermissions(cmd)
+	// coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {

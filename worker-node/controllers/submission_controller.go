@@ -42,9 +42,11 @@ func PublicTestSubmission() gin.HandlerFunc {
 		res, err := k8s.K8sMgr.RunOnPod(submission)
 
 		if err != nil {
-			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
+			res.Error = err.Error()
+			c.JSON(http.StatusNotAcceptable, res)
+			return
 		}
-		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err})
+		c.JSON(http.StatusAccepted, res)
 		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		// if err != nil {
 		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
@@ -81,9 +83,11 @@ func PrivateTestSubmission() gin.HandlerFunc {
 		res, err := k8s.K8sMgr.RunOnPod(submission)
 
 		if err != nil {
-			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
+			res.Error = err.Error()
+			c.JSON(http.StatusNotAcceptable, res)
+			return
 		}
-		c.JSON(http.StatusAccepted, gin.H{"result": res, "error": err})
+		c.JSON(http.StatusAccepted, res)
 		// allOkay, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
 		// if err != nil {
 		// 	c.JSON(http.StatusNotAcceptable, gin.H{"All tests passed": allOkay, "Execution Result": execResults, "Error": err.Error()})
