@@ -27,10 +27,10 @@ spec:
             limits:
               memory: "150Mi"
               cpu: "300m"
-          securityContext:
-            capabilities:
-              drop: ["ALL"]
+          # securityContext:
+            # capabilities:
+              # drop: ["ALL"]
             # runAsNonRoot: true
             # runAsUser:
-            readOnlyRootFilesystem: false
+            # readOnlyRootFilesystem: false
 #TODO: Disable internet

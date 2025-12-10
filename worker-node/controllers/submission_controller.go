@@ -39,7 +39,7 @@ func PublicTestSubmission() gin.HandlerFunc {
 
 		submission.Code = string(codeBytes)
 
-		res, err := k8s.K8sMgr.RunOnPod(submission, submission.Tests)
+		res, err := k8s.K8sMgr.RunOnPod(submission)
 
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})
@@ -78,7 +78,7 @@ func PrivateTestSubmission() gin.HandlerFunc {
 
 		submission.Code = string(codeBytes)
 
-		res, err := k8s.K8sMgr.RunOnPod(submission, submission.Tests)
+		res, err := k8s.K8sMgr.RunOnPod(submission)
 
 		if err != nil {
 			c.JSON(http.StatusNotAcceptable, gin.H{"result": res, "error": err.Error()})

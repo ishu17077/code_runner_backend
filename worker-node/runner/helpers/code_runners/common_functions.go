@@ -36,10 +36,6 @@ func SaveFile(filePath string, dirPath string, code string) error {
 		return fmt.Errorf("Cannot create new directory: %w", err)
 	}
 
-	if err := os.Chown(dirPath, 6969, 7070); err != nil {
-		return fmt.Errorf("Error chowining directory: %w", err)
-	}
-
 	err := os.WriteFile(filePath, []byte(code), 0755)
 	if err != nil {
 		return fmt.Errorf("Cannot save file: %w", err)

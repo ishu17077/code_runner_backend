@@ -43,7 +43,7 @@ func NewK8sManager() *K8sManager {
 	}
 }
 
-func (k *K8sManager) RunOnPod(submission models.Submission, testCases []models.TestCase) (string, error) {
+func (k *K8sManager) RunOnPod(submission models.Submission) (string, error) {
 	//TODO: return models.Result instead of string
 	executorPod, err := k.findRandomWarmPod()
 	if err != nil {
@@ -52,12 +52,7 @@ func (k *K8sManager) RunOnPod(submission models.Submission, testCases []models.T
 
 	fmt.Printf("Executing in pod: %s\n", executorPod)
 
-	var payload models.Payload = models.Payload{
-		Submission: submission,
-		TestCases:  testCases,
-	}
-
-	stdinPayload, err := json.Marshal(payload)
+	stdinPayload, err := json.Marshal(submission)
 
 	stdinPayload = []byte(base64.StdEncoding.EncodeToString(stdinPayload))
 	if err != nil {
