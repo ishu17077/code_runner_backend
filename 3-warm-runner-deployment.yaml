@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warm-runner
+spec:
+  replicas: 50 #! For now, if you want more rendundancy, by all means go ahead
+  selector:
+    matchLabels:
+      app: warm-runner
+  template:
+    metadata:
+      labels:
+        app: warm-runner
+        status: ready
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 0
+      containers:
+        - name: warm-runner
+          image: warm-runner
+          imagePullPolicy: Never
+          command: ["sleep", "infinity"]
+          resources:
+            requests:
+              memory: "60Mi"
+              cpu: "200m"
+            limits:
+              memory: "150Mi"
+              cpu: "300m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add:
+                - "SETUID" #? Requirements: switch to user 6969
+                - "SETGID" #? Requirements: switch to grp 7070
+                - "CHOWN" #? Requirements: chowning files
+                - "DAC_OVERRIDE" #? For cleanup
+                - "KILL"

@@ -166,7 +166,7 @@ microk8s images import ./code_runner.tar
 microk8s ctr images ls | grep code_runner
 ```
 
-If present all good, else rever to building the image again and importing it.
+If present all good, else revert to building the image again and importing it.
 
 > Now applying kubernetes config and secrets
 

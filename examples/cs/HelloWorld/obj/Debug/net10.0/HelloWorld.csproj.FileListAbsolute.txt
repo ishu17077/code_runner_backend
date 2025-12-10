@@ -1,0 +1,15 @@
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/bin/Debug/net10.0/HelloWorld
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/bin/Debug/net10.0/HelloWorld.deps.json
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/bin/Debug/net10.0/HelloWorld.runtimeconfig.json
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/bin/Debug/net10.0/HelloWorld.dll
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/bin/Debug/net10.0/HelloWorld.pdb
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.GeneratedMSBuildEditorConfig.editorconfig
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.AssemblyInfoInputs.cache
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.AssemblyInfo.cs
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.csproj.CoreCompileInputs.cache
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.sourcelink.json
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.dll
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/refint/HelloWorld.dll
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.pdb
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/HelloWorld.genruntimeconfig.cache
+/home/ishukumar5663/Go Language/code_runner_backend/examples/cs/HelloWorld/obj/Debug/net10.0/ref/HelloWorld.dll

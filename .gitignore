@@ -3,4 +3,4 @@
 /**/.env
 /**/env-configmap.yaml
 /**/*-secret.yaml
-/**/code_runner.tar
+/**/*.tar
