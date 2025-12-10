@@ -20,7 +20,7 @@ var validate = validator.New()
 
 func main() {
 	inputBytes, err := io.ReadAll(os.Stdin)
-	fmt.Printf("\n%s", string(inputBytes))
+	
 	if err != nil {
 		printInternalError("Failed to read stdin", err)
 		return
