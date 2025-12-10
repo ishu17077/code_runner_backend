@@ -54,7 +54,15 @@ func compileCode(filepath, outputDir string) error {
 func executeCode(classPath, className, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "java", "-cp", classPath, className)
+	runCmd := exec.CommandContext(ctx, "java",
+		"-XX:+UseSerialGC",        //? Lightweight GC
+		"-XX:TieredStopAtLevel=1", //? Fast startup, less optimization
+		"-Xshare:on",              //? Use shared class data if available
+		"-Xss256k",                //? Lower stack memory per thread
+		"-Xms128m",                //? Initial Heap
+		"-Xmx192m",                //? Max Heap (Must be < Pod Limit 256Mi)
+		"-XX:-UsePerfData",
+		"-cp", classPath, className)
 
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }
