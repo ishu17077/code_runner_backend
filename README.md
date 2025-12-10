@@ -186,4 +186,4 @@ minikube dashboard
 > [!TIP]
 > Use the microk8s method to avoid incompabilities.
 > [!NOTE]
-> The postman collection sample is attached with this program [here](code-runner.postman-collection.json).
+> The postman collection sample is attached with this program [here](code-runner.postman-collection.json.sample).
