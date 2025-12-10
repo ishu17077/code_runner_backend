@@ -11,40 +11,105 @@ git clone https://github.com/ishu17077/code_runner_backend
 cd code_runner_backend
 ```
 
-> Usage to run
-
-```bash
-cd worker-node
-docker compose up -d
-```
-
-> To stop the container
-
-```bash
-docker stop code_runner
-```
-
-To run it again use the above two command inside this project
-
-> To remove the container
-
-```bash
-docker container stop code_runner
-docker container rm code_runner
-docker rmi code_runner:latest
-```
-
 > API Calls
 
 [Postman collection](https://m1racles.postman.co/workspace/SCCSE~18de115a-fe99-43e4-8681-bfccf985ac14/collection/40284511-abc6ba02-0e7d-48cf-9fb2-a3b113eb6fa1?action=share&creator=40284511)
 
 ## The Kubernetes Method
 
-> ./worker-node
+### To use with more production grade microk8s instead of minikube(New New Method)
+
+> Install microk8s
 
 ```bash
-cd worker-node
+sudo apt install snapd
+sudo snap install microk8s --classic
 ```
+
+**Note:** For Fedora use sudo dnf install snapd instead of first command
+
+> Build the image and output it using docker
+>> 1
+
+```bash
+docker build -f ./code-runner.Dockerfile . -t code-runner;
+docker build -f ./warm-runner.Dockerfile . -t warm-runner;
+```
+
+>> 2
+
+```bash
+docker save -o ./code-runner.tar code-runner;
+docker save -o ./warm-runner.tar warm-runner
+```
+
+### Secret Config
+
+**Note:** For new method, use this:
+
+>> First create 1-code-runner-secret.yaml from 1-code-runner-secret.yaml.sample provided. (The values must be base64 encoded in the params)
+
+```bash
+cp ./1-code-runner-secret.yaml.sample ./1-code-runner-secret.yaml
+```
+
+Change the values of 1-code-runner-secret.yaml accordingly
+
+> Import image in microk8s
+
+```bash
+microk8s images import ./code-runner.tar
+microk8s images import ./warm-runner.tar
+```
+
+> Check if image is present
+
+```bash
+microk8s ctr images ls | grep code-runner
+microk8s ctr images ls | grep code-runner
+```
+
+If present all good, else revert to building the image again and importing it.
+
+**Note:** You must create these files from template mentioned [here](#secret-config)</a>
+
+> Now applying kubernetes config and secrets(Optional)
+
+```bash
+microk8s kubectl apply -f ./1-code-runner-secret.yaml
+microk8s kubectl apply -f ./2-code-runner.config.yaml
+```
+
+> Deploy Everything(One shot)
+
+```bash
+microk8s kuberctl apply -f .
+```
+
+> Check the deployment
+
+```bash
+microk8s kuberctl get pods
+```
+
+Choose any pod and describe
+
+```bash
+microk8s kuberctl get code-runner-*
+```
+
+**Note:** * is any pod id you found
+
+#### Enable dashboard(optional)
+
+```bash
+microk8s enable dashboard
+microk8s dashboard-proxy
+```
+
+**Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
+
+### The minikube method(Old Method)
 
 > Install Kubernetes (kubectl to create deployments preferrably through docker desktop)
 
@@ -56,6 +121,8 @@ You can either use kind or minikube, minikube is preferrable because it has been
 Install it on your system using [Minikube Tutorial](https://minikube.sigs.k8s.io/docs/start/).
 >> Install KIND(Kunbernetes In Docker)
 Install it on your system using [KIND Tutorial](https://kind.sigs.k8s.io/docs/user/quick-start/).
+> [!WARNING]
+> With KIND, you are on your own, it has not been tested
 
 ```bash
 kind create cluster
@@ -95,21 +162,11 @@ Now provide values into .env
 ```bash
 kubectl create configmap env --from-file ./.env
 ``` -->
-##### Secret Config
-
-**Note:** For new method, use this:
-
->> First create code-runner-secret.yaml from code-runner-secret.sample.yaml provided. (The values must be base64 encoded in the params)
-
-```bash
-kubectl apply -f ./code-runner-config.yaml && kubectl apply -f ./code-runner-secret.yaml
-```
 
 > Now apply the kubernetes conf
 
 ```bash
-kubectl apply -f ./code-runner-deployment.yaml
-kubectl apply -f ./code-runner-service.yaml
+kubectl apply -f .
 ```
 
 > Now we need to get a port exposed from minikube
@@ -126,83 +183,7 @@ minikube service code-runner
 minikube dashboard
 ```
 
-### To use with more production grade microk8s instead of minikube(New New Method)
-
-```bash
-cd worker-node
-```
-
-> Install microk8s
-
-```bash
-sudo apt install snapd
-sudo snap install microk8s --classic
-```
-
-**Note:** For Fedora use sudo dnf install snapd instead of first command
-
-> Build the image and output it using docker
->> 1
-
-```bash
-docker build -t code_runner . 
-```
-
->> 2
-
-```bash
-docker save -o ../code_runner.tar code_runner
-```
-
-> Import image in microk8s
-
-```bash
-microk8s images import ./code_runner.tar
-```
-
-> Check if image is present
-
-```bash
-microk8s ctr images ls | grep code_runner
-```
-
-If present all good, else revert to building the image again and importing it.
-
-> Now applying kubernetes config and secrets
-
-```bash
-microk8s kubectl apply -f ./code-runner-config.yaml
-microk8s kubectl apply -f ./code-runner-secret.yaml
-```
-
-**Note:** You must create these files from template mentioned [here](#secret-config)</a>
-
-> Deploy and services
-
-```bash
-microk8s kuberctl apply -f ./code-runner-deployment.yaml
-microk8s kuberctl apply -f ./code-runner-service.yaml
-```
-
-> Check the deployment
-
-```bash
-microk8s kuberctl get pods
-```
-
-Choose any pod and describe
-
-```bash
-microk8s kuberctl get code-runner-*
-```
-
-**Note:** * is any pod id you found
-
-#### Enable dashboard(optional)
-
-```bash
-microk8s enable dashboard
-microk8s dashboard-proxy
-```
-
-**Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
+> [!TIP]
+> Use the microk8s method to avoid incompabilities.
+> [!NOTE]
+> The postman collection sample is attached with this program [here](code-runner.postman-collection.json).

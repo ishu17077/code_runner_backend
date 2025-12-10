@@ -1,2 +1,2 @@
-rm -rf ../code-runner.tar; rm -rf ../warm-runner.tar;
-docker build -f ./warm-runner.Dockerfile . -t warm-runner && docker save warm-runner:latest -o ../warm-runner.tar && docker build -f ./code-runner.Dockerfile . -t code-runner && docker save code-runner:latest -o ../code-runner.tar
+rm -rf ./code-runner.tar; rm -rf ./warm-runner.tar;
+docker build -f ./warm-runner.Dockerfile . -t warm-runner && docker save warm-runner:latest -o ./warm-runner.tar && docker build -f ./code-runner.Dockerfile . -t code-runner && docker save code-runner:latest -o ./code-runner.tar

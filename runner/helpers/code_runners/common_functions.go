@@ -19,10 +19,10 @@ var TleError error = fmt.Errorf("Time Limit Exceeded")
 // 	cGroupManager *v3.Manager
 // )
 
-const (
-	maj int64 = 8
-	min int64 = 0
-)
+// const (
+// 	maj int64 = 8
+// 	min int64 = 0
+// )
 
 // func init() {
 // 	cGroupManager, cGroupFile = setUpCGroup()
