@@ -121,6 +121,7 @@ You can either use kind or minikube, minikube is preferrable because it has been
 Install it on your system using [Minikube Tutorial](https://minikube.sigs.k8s.io/docs/start/).
 >> Install KIND(Kunbernetes In Docker)
 Install it on your system using [KIND Tutorial](https://kind.sigs.k8s.io/docs/user/quick-start/).
+
 > [!WARNING]
 > With KIND, you are on your own, it has not been tested
 
