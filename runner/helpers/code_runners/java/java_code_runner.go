@@ -59,8 +59,8 @@ func executeCode(classPath, className, stdin string) (string, error) {
 		"-XX:TieredStopAtLevel=1", //? Fast startup, less optimization
 		"-Xshare:on",              //? Use shared class data if available
 		"-Xss256k",                //? Lower stack memory per thread
-		"-Xms128m",                //? Initial Heap
-		"-Xmx192m",                //? Max Heap (Must be < Pod Limit 256Mi)
+		"-Xms64m",                 //? Initial Heap
+		"-Xmx128m",                //? Max Heap (Must be < Pod Limit 256Mi)
 		"-XX:-UsePerfData",
 		"-cp", classPath, className)
 

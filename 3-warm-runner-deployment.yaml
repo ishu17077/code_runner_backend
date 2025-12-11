@@ -24,9 +24,11 @@ spec:
             requests:
               memory: "60Mi"
               cpu: "200m"
+              ephemeral-storage: "100Mi"
             limits:
               memory: "150Mi"
               cpu: "300m"
+              ephemeral-storage: "100Mi"
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
