@@ -96,7 +96,7 @@ func printInternalError(msg string, err error) {
 	}
 
 	res := models.Result{
-		Status: "INTERNAL_ERROR",
+		Status: currentstatus.INTERNAL_ERROR.ToString(),
 		Results: []models.ExecResult{
 			{
 				Status: &models.Status{

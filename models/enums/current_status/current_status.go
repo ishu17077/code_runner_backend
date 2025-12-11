@@ -10,6 +10,7 @@ const (
 	PENDING
 	TIME_LIMIT_EXCEEDED
 	RESOURCE_LIMIT_EXCEEDED
+	INTERNAL_ERROR
 )
 
 func (currStatus CurrentStatus) ToString() string {
@@ -24,6 +25,8 @@ func (currStatus CurrentStatus) ToString() string {
 		return "TIME_LIMIT_EXCEEDED"
 	case RESOURCE_LIMIT_EXCEEDED:
 		return "RESOURCE_LIMIT_EXCEEDED"
+	case INTERNAL_ERROR:
+		return "INTERNAL_ERROR"
 	default:
 		return "FAILED"
 	}
@@ -41,6 +44,8 @@ func CurrentStatusParser(currentStatus string) CurrentStatus {
 		return TIME_LIMIT_EXCEEDED
 	case "RESOURCE_LIMIT_EXCEEDED":
 		return RESOURCE_LIMIT_EXCEEDED
+	case "INTERNAL_ERROR":
+		return INTERNAL_ERROR
 	default:
 		return FAILED
 	}
