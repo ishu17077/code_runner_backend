@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: warm-runner
 spec:
-  replicas: 50 #! For now, if you want more rendundancy, by all means go ahead
+  replicas: 70 #! For now, if you want more rendundancy, by all means go ahead
   selector:
     matchLabels:
       app: warm-runner

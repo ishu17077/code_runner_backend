@@ -137,7 +137,13 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 // }
 
 func SetPermissions(cmd *exec.Cmd) {
-	cmd.Env = []string{"REALLY:GOOD_TRY"}
+	cmd.Env = []string{
+		"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.dotnet/tools:/opt/Rust/.cargo/bin",
+		"HOME=/tmp",
+		"RUST_HOME=/opt/Rust",
+		"RUSTUP_HOME=/opt/Rust/.rustup",
+		"CARGO_HOME=/opt/Rust/.cargo",
+		"REALLY=GOOD_LUCK_GETTING_ANYTHING"}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,

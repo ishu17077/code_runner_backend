@@ -23,6 +23,8 @@ import (
 	"k8s.io/client-go/tools/remotecommand"
 )
 
+var ErrTooManyRequests = fmt.Errorf("Too many requests")
+
 type K8sManager struct {
 	clientSet *kubernetes.Clientset
 	config    *rest.Config
@@ -51,7 +53,7 @@ func (k *K8sManager) RunOnPod(submission models.Submission) (models.Result, erro
 	//TODO: return models.Result instead of string
 	executorPod, err := k.findRandomWarmPod()
 	if err != nil {
-		return emptyResult("Unable to execute the program."), err
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program."), err
 	}
 
 	fmt.Printf("Executing in pod: %s\n", executorPod)
@@ -60,7 +62,7 @@ func (k *K8sManager) RunOnPod(submission models.Submission) (models.Result, erro
 
 	stdinPayload = []byte(base64.StdEncoding.EncodeToString(stdinPayload))
 	if err != nil {
-		return emptyResult("Unable to execute the program."), fmt.Errorf("Conversion to JSON failed: %s", err.Error())
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program."), fmt.Errorf("Conversion to JSON failed: %s", err.Error())
 	}
 	cmd := []string{"./runner"}
 
@@ -76,9 +78,9 @@ func (k *K8sManager) RunOnPod(submission models.Submission) (models.Result, erro
 
 	if execErr != nil {
 		if errors.Is(execErr, context.DeadlineExceeded) {
-			return emptyResult("Time Limit Exceeded"), fmt.Errorf("Unable to complete execution")
+			return emptyResult(currentstatus.TIME_LIMIT_EXCEEDED, "Time Limit Exceeded"), fmt.Errorf("Unable to complete execution")
 		}
-		return emptyResult("Memory Limit Exceeded"), fmt.Errorf("execution failed: %v | stderr: %s", execErr, stderr)
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Memory Limit Exceeded"), fmt.Errorf("execution failed: %v | stderr: %s", execErr, stderr)
 	}
 	return extractJsonFromStdout(output), nil
 }
@@ -97,7 +99,7 @@ func (k *K8sManager) findRandomWarmPod() (string, error) {
 	}
 
 	if len(pods.Items) == 0 {
-		return "", fmt.Errorf("no warm pods available in pool")
+		return "", ErrTooManyRequests
 	}
 
 	rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -164,27 +166,27 @@ func extractJsonFromStdout(res string) models.Result {
 	matches := regExpMatch.FindStringSubmatch(res)
 
 	if len(matches) < 2 {
-		return emptyResult("Error consuming too much resources")
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Error consuming too much resources")
 	}
 	res = strings.TrimSpace(matches[1])
 
 	var result models.Result
 	jsonData, err := base64.StdEncoding.DecodeString(res)
 	if err != nil {
-		return emptyResult("Unable to execute the program.")
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program.")
 
 	}
 	if err = json.Unmarshal(jsonData, &result); err != nil {
-		return emptyResult("Unable to execute the program.")
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program.")
 	}
 
 	return result
 
 }
 
-func emptyResult(err string) models.Result {
+func emptyResult(status currentstatus.CurrentStatus, err string) models.Result {
 	return models.Result{
-		Status:  currentstatus.FAILED.ToString(),
+		Status:  status.ToString(),
 		Results: []models.ExecResult{},
 		Error:   err,
 	}

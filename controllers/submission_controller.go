@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ishu17077/code_runner_backend/helpers/k8s"
 	"github.com/ishu17077/code_runner_backend/models"
+	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 )
 
 // ! Simple odd even Test
@@ -43,7 +45,14 @@ func PublicTestSubmission() gin.HandlerFunc {
 
 		if err != nil {
 			res.Error = err.Error()
+		}
+
+		if res.Status != currentstatus.SUCCESS.ToString() {
 			c.JSON(http.StatusNotAcceptable, res)
+			return
+		}
+		if errors.Is(err, k8s.ErrTooManyRequests) {
+			c.JSON(http.StatusTooManyRequests, res)
 			return
 		}
 		c.JSON(http.StatusAccepted, res)
@@ -84,6 +93,8 @@ func PrivateTestSubmission() gin.HandlerFunc {
 
 		if err != nil {
 			res.Error = err.Error()
+		}
+		if res.Status != currentstatus.SUCCESS.ToString() {
 			c.JSON(http.StatusNotAcceptable, res)
 			return
 		}
