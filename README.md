@@ -40,7 +40,7 @@ docker build -f ./warm-runner.Dockerfile . -t warm-runner;
 
 ```bash
 docker save -o ./code-runner.tar code-runner;
-docker save -o ./warm-runner.tar warm-runner
+docker save -o ./warm-runner.tar warm-runner;
 ```
 
 ### Secret Config
@@ -108,6 +108,9 @@ microk8s dashboard-proxy
 ```
 
 **Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
+
+> [!NOTE]
+> This api will be accessible through 30080 port, as it is configured to use NodePort as load balancer
 
 ### The minikube method(Old Method)
 

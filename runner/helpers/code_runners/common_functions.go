@@ -137,6 +137,7 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 // }
 
 func SetPermissions(cmd *exec.Cmd) {
+	cmd.Env = []string{"REALLY:GOOD_TRY"}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,
