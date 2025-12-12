@@ -83,19 +83,19 @@ microk8s kubectl apply -f ./2-code-runner.config.yaml
 > Deploy Everything(One shot)
 
 ```bash
-microk8s kuberctl apply -f .
+microk8s kubectl apply -f .
 ```
 
 > Check the deployment
 
 ```bash
-microk8s kuberctl get pods
+microk8s kubectl get pods
 ```
 
 Choose any pod and describe
 
 ```bash
-microk8s kuberctl get code-runner-*
+microk8s kubectl get code-runner-*
 ```
 
 **Note:** * is any pod id you found
