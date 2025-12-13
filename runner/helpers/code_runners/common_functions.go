@@ -48,7 +48,12 @@ func SaveFile(filePath string, dirPath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
+	if runCmd.Args[0] != "-XX:+UseSerialGC" {
+		SetPermissions(runCmd)
+	}
+
 	// SetPermissions(runCmd)
+
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
