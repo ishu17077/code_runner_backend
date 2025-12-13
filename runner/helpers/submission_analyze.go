@@ -78,7 +78,7 @@ func testCCode(submission models.Submission, testCases []models.TestCase, execRe
 	for _, testCase := range testCases {
 		res, err := c.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -108,7 +108,7 @@ func testCppCode(submission models.Submission, testCases []models.TestCase, exec
 	for _, testCase := range testCases {
 		res, err := cpp.CheckSubmission(submission, testCase, outputPath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -137,7 +137,7 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 	for _, testCase := range testCases {
 		res, err := python.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -155,31 +155,22 @@ func testPythonCode(submission models.Submission, testCases []models.TestCase, e
 }
 
 func testJavaCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
-	var allPassed = true
-	className, dirPath, err := java.PreCompilationTask(submission)
+	var allPassed = false
+	className, classPath, dirPath, err := java.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
-	errors := 0
-	for _, testCase := range testCases {
-		res, err := java.CheckSubmission(submission, testCase, className, dirPath)
-		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
-		if !passed {
-			allPassed = false
-		}
-		*execResults = append(*execResults, execResult)
-		if err != nil {
-			errors++
-			if errors > 2 {
-				return allPassed, nil
-			}
-		} else {
-			errors = 0
-		}
+	var payload models.Payload = models.Payload{
+		Class_name: "Solution",
+		Exec_time:  2500,
+		Tests:      testCases,
 	}
-	return allPassed, nil
+	allPassed, result, err := java.CheckSubmission(payload, className, classPath)
+
+	*execResults = result.Results
+
+	return allPassed, err
 }
 
 func testCSharpCode(submission models.Submission, testCases []models.TestCase, execResults *[]models.ExecResult) (bool, error) {
@@ -193,7 +184,7 @@ func testCSharpCode(submission models.Submission, testCases []models.TestCase, e
 	for _, testCase := range testCases {
 		res, err := c_sharp.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -221,7 +212,7 @@ func testRustCode(submission models.Submission, testCases []models.TestCase, exe
 	for _, testCase := range testCases {
 		res, err := rust.CheckSubmission(submission, testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResults(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
 		}
@@ -239,7 +230,7 @@ func testRustCode(submission models.Submission, testCases []models.TestCase, exe
 	return allPassed, nil
 }
 
-func getExecResults(submission models.Submission, testCase models.TestCase, res currentstatus.CurrentStatus, err error) (models.ExecResult, bool) {
+func getExecResult(submission models.Submission, testCase models.TestCase, res currentstatus.CurrentStatus, err error) (models.ExecResult, bool) {
 	var execResult models.ExecResult = models.ExecResult{
 		ID:         bson.NewObjectID(),
 		Problem_id: submission.ProblemID,
@@ -249,7 +240,7 @@ func getExecResults(submission models.Submission, testCase models.TestCase, res 
 	if err != nil || res != currentstatus.SUCCESS {
 		execResult.Status = &models.Status{
 			Message:        err.Error(),
-			Current_status: "FAILED",
+			Current_status: currentstatus.FAILED.ToString(),
 			Stdout:         "",
 			Stderr:         "",
 			Completed_At:   time.Now(),
@@ -259,7 +250,7 @@ func getExecResults(submission models.Submission, testCase models.TestCase, res 
 		//? SUCCESSful Execution :)
 		execResult.Status = &models.Status{
 			Message:        fmt.Sprintf("Test: #%s Passed", testCase.Test_id),
-			Current_status: "SUCCESS",
+			Current_status: currentstatus.SUCCESS.ToString(),
 			Stdout:         "",
 			Stderr:         "",
 			Completed_At:   time.Now(),

@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ishu17077/code_runner_backend/helpers/k8s"
@@ -65,12 +64,8 @@ func PublicTestSubmission() gin.HandlerFunc {
 	}
 }
 
-var lock sync.Mutex
-
 func PrivateTestSubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		lock.Lock()
-		defer lock.Unlock()
 		var submission models.Submission
 		if err := c.ShouldBind(&submission); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Bad request", "msg": err.Error()})

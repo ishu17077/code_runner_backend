@@ -1,0 +1,19 @@
+{
+    "class_name": "Solution",
+    "tests": [
+        {
+            "problem_id": "11",
+            "is_public": true,
+            "stdin": "69\n59\n",
+            "expected_output": "No",
+            "test_id": "2"
+        },
+        {
+            "problem_id": "12",
+            "is_public": true,
+            "stdin": "60\n50\n",
+            "expected_output": "No",
+            "test_id": "3"
+        }
+    ]
+}

@@ -1,16 +1,9 @@
 package models
 
-import (
-	"go.mongodb.org/mongo-driver/v2/bson"
-)
-
 type Submission struct {
-	ID            bson.ObjectID `bson:"_id"`
-	Team_id       string        `json:"team_id"`
-	ProblemID     string        `json:"problem_id"`
-	Language      string        `json:"language" binding:"required" validate:"required"`
-	Status        string        `json:"status"`
-	Code          string        `json:"code" binding:"required" validate:"required"`
-	Submission_id string        `json:"submission_id"`
-	Tests         []TestCase    `json:"tests" binding:"required" validate:"required"`
+	ID        string     `json:"id"`
+	ProblemID string     `json:"problem_id"`
+	Language  string     `json:"language" binding:"required" validate:"required"`
+	Code      string     `json:"code" binding:"required" validate:"required"`
+	Tests     []TestCase `json:"tests" binding:"required" validate:"required"`
 }

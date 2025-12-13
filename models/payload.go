@@ -1,6 +1,7 @@
 package models
 
 type Payload struct {
-	Submission Submission `json:"submission" validate:"required"`
-	TestCases  []TestCase `json:"test_cases" validate:"required"`
+	Class_name string     `json:"class_name" validate:"required"`
+	Exec_time  int        `json:"exec_time" validate:"required"`
+	Tests      []TestCase `json:"tests" validate:"required"`
 }
