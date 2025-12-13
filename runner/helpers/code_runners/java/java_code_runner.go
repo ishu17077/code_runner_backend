@@ -2,6 +2,8 @@ package java
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"time"
@@ -14,35 +16,54 @@ import (
 
 // const outputPath = "/temp/Solution.class"
 
-func PreCompilationTask(submission models.Submission) (string, string, error) {
+func PreCompilationTask(submission models.Submission) (string, string, string, error) {
 	newId := bson.NewObjectID().Hex()
 	var dirPath = fmt.Sprintf("/temp/%s", newId)
 	var filePath = fmt.Sprintf("%s/Solution.java", dirPath)
-	const className = "Solution"
+	const javaExcutorPath = "./JavaExecutor.jar"
+	var classPath = fmt.Sprintf("%s:%s", javaExcutorPath, dirPath)
+	const className = "code_runner_backend.JavaExecutor"
 
 	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
-		return "", dirPath, err
+		return "", classPath, dirPath, err
 	}
+
 	if err := compileCode(filePath, dirPath); err != nil {
-		return "", dirPath, err
+		return "", classPath, dirPath, err
 	}
-	return className, dirPath, nil
+	return className, classPath, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase, className, dirPath string) (currentstatus.CurrentStatus, error) {
-	res, err := executeCode(dirPath, className, test.Stdin)
+func CheckSubmission(payload models.Payload, className, classPath string) (bool, models.Result, error) {
+	var jsonPayload, err = json.Marshal(payload)
+
 	if err != nil {
-		return currentstatus.FAILED, err
+		return false, models.Result{
+			Status:  currentstatus.INTERNAL_ERROR.ToString(),
+			Results: []models.ExecResult{},
+			Error:   err.Error(),
+		}, err
 	}
-	return coderunners.CheckOutput(res, test.ExpectedOutput)
+
+	var base64EncPayload string = base64.StdEncoding.EncodeToString(jsonPayload)
+
+	res, err := executeCode(classPath, className, base64EncPayload)
+	if err != nil {
+		return false, models.Result{
+			Status:  currentstatus.INTERNAL_ERROR.ToString(),
+			Results: []models.ExecResult{},
+			Error:   err.Error(),
+		}, err
+	}
+	return coderunners.CheckJavaOutput(res, payload.Tests)
 }
 
 func compileCode(filepath, outputDir string) error {
-	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "javac", "-d", outputDir, filepath)
-
-	coderunners.SetPermissions(cmd)
+	//TODO: Check why???
+	// coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -52,7 +73,7 @@ func compileCode(filepath, outputDir string) error {
 }
 
 func executeCode(classPath, className, stdin string) (string, error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "java",
 		"-XX:+UseSerialGC",        //? Lightweight GC
@@ -60,7 +81,7 @@ func executeCode(classPath, className, stdin string) (string, error) {
 		"-Xshare:on",              //? Use shared class data if available
 		"-Xss256k",                //? Lower stack memory per thread
 		"-Xms64m",                 //? Initial Heap
-		"-Xmx128m",                //? Max Heap (Must be < Pod Limit 256Mi)
+		"-Xmx128m",                //? Max Heap (Must be < Pod Limit mem)
 		"-XX:-UsePerfData",
 		"-cp", classPath, className)
 

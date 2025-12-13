@@ -154,7 +154,7 @@ func (k *K8sManager) execInPod(podName string, cmd []string, stdin []byte) (stri
 	if len(stdin) > 0 {
 		streamOpts.Stdin = bytes.NewReader(stdin)
 	}
-	//* Add context timeout option is available
+	//// Add context timeout option is available
 	err = exec.StreamWithContext(ctx, streamOpts)
 
 	return stdout.String(), stderr.String(), err
@@ -164,7 +164,7 @@ func extractJsonFromStdout(res string) models.Result {
 
 	var regExpMatch = regexp.MustCompile(`(?s)---JSON_START---(.*?)---JSON_END---`)
 	matches := regExpMatch.FindStringSubmatch(res)
-
+	//? matches[0] is entire block and matches[1] is is content in b/w start and end
 	if len(matches) < 2 {
 		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Error consuming too much resources")
 	}
@@ -191,11 +191,6 @@ func emptyResult(status currentstatus.CurrentStatus, err string) models.Result {
 		Error:   err,
 	}
 }
-
-// escapeForShell safeguards string inputs against shell injection.
-// func (k *K8sManager) escapeForShell(s string) string {
-// 	return strings.ReplaceAll(s, "'", "'\\''")
-// }
 
 func (k *K8sManager) ptr(i int64) *int64 {
 	return &i

@@ -2,13 +2,17 @@ package coderunners
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"syscall"
 
+	"github.com/ishu17077/code_runner_backend/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 )
 
@@ -44,7 +48,7 @@ func SaveFile(filePath string, dirPath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	SetPermissions(runCmd)
+	// SetPermissions(runCmd)
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
 		return "", fmt.Errorf("Error connecting pipe input")
@@ -184,6 +188,63 @@ func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.Curr
 		}
 	}
 	return currentstatus.SUCCESS, nil
+}
+
+func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models.Result, error) {
+	var result models.Result
+	var allPassed = true
+
+	result = extractJsonFromStdout(allOutput)
+
+	if len(result.Results) > len(allTests) {
+		return false, emptyResult(currentstatus.INTERNAL_ERROR, "Invalid Results"), fmt.Errorf("Invalid Results")
+	}
+	if result.Error != "" || result.Status == currentstatus.INTERNAL_ERROR.ToString() {
+		return false, result, fmt.Errorf("%s", result.Error)
+	}
+
+	for i, execResult := range result.Results {
+		if strings.TrimSpace(allTests[i].ExpectedOutput) != strings.TrimSpace(execResult.Status.Stdout) {
+			allPassed = false
+			result.Status = currentstatus.FAILED.ToString()
+			result.Results[i].Status.Message = fmt.Sprintf("Expected Output: %s, Actual Ouptut: %s", allTests[i].ExpectedOutput, execResult.Status.Stdout)
+		} else {
+			result.Results[i].Status.Current_status = currentstatus.SUCCESS.ToString()
+		}
+	}
+	return allPassed, result, nil
+}
+
+func extractJsonFromStdout(res string) models.Result {
+
+	var regExpMatch = regexp.MustCompile(`(?s)---JSON_START---(.*?)---JSON_END---`)
+	matches := regExpMatch.FindStringSubmatch(res)
+	//? matches[0] is entire block and matches[1] is is content in b/w start and end
+	if len(matches) < 2 {
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Error consuming too much resources")
+	}
+	res = strings.TrimSpace(matches[1])
+
+	var result models.Result
+	jsonData, err := base64.StdEncoding.DecodeString(res)
+	if err != nil {
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program.")
+
+	}
+	if err = json.Unmarshal(jsonData, &result); err != nil {
+		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program.")
+	}
+
+	return result
+
+}
+
+func emptyResult(status currentstatus.CurrentStatus, err string) models.Result {
+	return models.Result{
+		Status:  status.ToString(),
+		Results: []models.ExecResult{},
+		Error:   err,
+	}
 }
 
 func CleanUp(path string) {
