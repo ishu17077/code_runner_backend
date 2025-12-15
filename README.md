@@ -111,16 +111,34 @@ microk8s dashboard-proxy
 
 ## To call the API
 
+## Converting the programs to base64
+
+You need to convert your entire code to base64 encoding before passing down to api
+
+[Base64 encode/decode here](https://www.base64encode.org/)
+
+Below is an example of base64 encoding
+
+```base64
+I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==
+```
+
+Make sure you select encode option at the top for encoding
+
+> [!NOTE]
+> Please make sure you use class Solution for java programs, and don't forget to add 'package main' at the top of golang code.
+
 > JSON Payload to call the api
 
 **Note:** You can either use postman or curl
 
 Request Type: POST
 
->> ${host_url}/submission/test/private
->> ${host_url}/submission/test/public
+>> {host_url}/submission/test/private
 
-Replace ${host_url} with actual url whether that be localhost or somewhere else.
+>> {host_url}/submission/test/public
+
+Replace {host_url} with actual url whether that be localhost or somewhere else.
 
 **Note:** /submission/test/public endpoint cannot have more than 3 tests defined
 
@@ -155,6 +173,7 @@ curl -v -X POST "127.0.0.1:300080/submission/test/private" -H "Content-Type: app
 
 > [!NOTE]
 > This api will be accessible through 30080 port, as it is configured to use NodePort as load balancer
+> For more paraller processing go to file 3-warm-runner-deployment.yaml and change 'replicas' in accordance with your computer specification.
 
 ### The minikube method(Old Method)
 
