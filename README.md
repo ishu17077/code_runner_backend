@@ -173,6 +173,7 @@ curl -v -X POST "127.0.0.1:300080/submission/test/private" -H "Content-Type: app
 
 > [!NOTE]
 > This api will be accessible through 30080 port, as it is configured to use NodePort as load balancer
+
 > For more paraller processing go to file 3-warm-runner-deployment.yaml and change 'replicas' in accordance with your computer specification.
 
 ### The minikube method(Old Method)
