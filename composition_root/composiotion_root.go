@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ishu17077/code_runner_backend/middlewares"
 	"github.com/ishu17077/code_runner_backend/routes"
 )
 
@@ -27,6 +28,7 @@ func init() {
 
 func Start() error {
 	routesDefine(router)
+	middlewareUse(router)
 	return server.ListenAndServe()
 }
 
@@ -40,4 +42,8 @@ func routesDefine(router *gin.Engine) {
 
 	routes.SubmissionRoutes(submissionRoutes)
 	routes.AdminRoutes(adminRoutes)
+}
+
+func middlewareUse(router *gin.Engine) {
+	router.Use(middlewares.MaxAllowedSize(5 * 1024 * 1024)) //? 5 MB
 }

@@ -109,6 +109,50 @@ microk8s dashboard-proxy
 
 **Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
 
+## To call the API
+
+> JSON Payload to call the api
+
+**Note:** You can either use postman or curl
+
+Request Type: POST
+
+>> ${host_url}/submission/test/private
+>> ${host_url}/submission/test/public
+
+Replace ${host_url} with actual url whether that be localhost or somewhere else.
+
+**Note:** /submission/test/public endpoint cannot have more than 3 tests defined
+
+```json
+{
+    "problem_id": "69",
+    "language": "C",
+    "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==",
+      "tests": [
+    {
+  "problem_id":     "69",
+  "is_public":      true,
+  "stdin":          "12\n",
+  "expected_output": "Yes\nYes",
+  "test_id":        "1"
+ }
+    ]
+}
+```
+
+### Postman
+
+> Install Postman from [here](https://www.postman.com/downloads/)
+
+### Curl
+
+```bash
+curl -v -X POST "127.0.0.1:300080/submission/test/private" -H "Content-Type: application/json" -H "Connection: close" --data @./examples/stress_payload.json
+```
+
+**Note:** You can pipe the above command through jq to pretty print json, in simple terms add " | jq", at the end of the above code
+
 > [!NOTE]
 > This api will be accessible through 30080 port, as it is configured to use NodePort as load balancer
 

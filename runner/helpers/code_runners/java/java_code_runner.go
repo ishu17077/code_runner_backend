@@ -20,7 +20,7 @@ func PreCompilationTask(submission models.Submission) (string, string, string, e
 	newId := bson.NewObjectID().Hex()
 	var dirPath = fmt.Sprintf("/temp/%s", newId)
 	var filePath = fmt.Sprintf("%s/Solution.java", dirPath)
-	const javaExcutorPath = "./JavaExecutor.jar"
+	const javaExcutorPath = "/opt/JavaExecutor.jar"
 	var classPath = fmt.Sprintf("%s:%s", javaExcutorPath, dirPath)
 	const className = "code_runner_backend.JavaExecutor"
 
@@ -63,7 +63,7 @@ func compileCode(filepath, outputDir string) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "javac", "-d", outputDir, filepath)
 	//TODO: Check why???
-	// coderunners.SetPermissions(cmd)
+	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()
 
 	if err != nil {

@@ -13,6 +13,7 @@ const (
 	Java
 	Cs
 	Rust
+	Go
 	Undefined
 )
 
@@ -30,6 +31,8 @@ func (language Language) ToString() string {
 		return "cs"
 	case Rust:
 		return "rust"
+	case Go:
+		return "go"
 	default:
 		return "Undefined"
 	}
@@ -49,6 +52,8 @@ func LanguageParser(s string) Language {
 		return Cs
 	case "rust":
 		return Rust
+	case "go":
+		return Go
 	default:
 		return Undefined
 	}

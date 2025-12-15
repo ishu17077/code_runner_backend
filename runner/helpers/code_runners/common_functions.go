@@ -14,6 +14,7 @@ import (
 
 	"github.com/ishu17077/code_runner_backend/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 var TleError error = fmt.Errorf("Time Limit Exceeded")
@@ -48,11 +49,7 @@ func SaveFile(filePath string, dirPath string, code string) error {
 }
 
 func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
-	if runCmd.Args[0] != "-XX:+UseSerialGC" {
-		SetPermissions(runCmd)
-	}
-
-	// SetPermissions(runCmd)
+	SetPermissions(runCmd)
 
 	stdinPipe, pipeErr := runCmd.StdinPipe()
 	if pipeErr != nil {
@@ -198,6 +195,7 @@ func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.Curr
 func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models.Result, error) {
 	var result models.Result
 	var allPassed = true
+	var err error = nil
 
 	result = extractJsonFromStdout(allOutput)
 
@@ -208,7 +206,15 @@ func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models
 		return false, result, fmt.Errorf("%s", result.Error)
 	}
 
+	if len(result.Results) < len(allTests) {
+		allPassed = false
+		err = fmt.Errorf("Tests Interrupted: Check for test results given")
+		result.Status = currentstatus.FAILED.ToString()
+	}
+
 	for i, execResult := range result.Results {
+		execResult.ExecResult_id = bson.NewObjectID().Hex()
+
 		if strings.TrimSpace(allTests[i].ExpectedOutput) != strings.TrimSpace(execResult.Status.Stdout) {
 			allPassed = false
 			result.Status = currentstatus.FAILED.ToString()
@@ -217,7 +223,7 @@ func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models
 			result.Results[i].Status.Current_status = currentstatus.SUCCESS.ToString()
 		}
 	}
-	return allPassed, result, nil
+	return allPassed, result, err
 }
 
 func extractJsonFromStdout(res string) models.Result {

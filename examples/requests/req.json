@@ -1,0 +1,48 @@
+{
+    "submission": {
+        "ID": "000000000000000000000000",
+        "team_id": "",
+        "problem_id": "69",
+        "language": "Python",
+        "status": "",
+        "code": "if(int(input()) % 2) == 0:\n    print('Yes')\nelse:\n    print('No')\n",
+        "submission_id": "",
+        "tests": [
+            {
+                "ID": "000000000000000000000000",
+                "problem_id": "69",
+                "is_public": true,
+                "stdin": "12\n",
+                "expected_output": "Yes",
+                "test_id": "1"
+            },
+            {
+                "ID": "000000000000000000000000",
+                "problem_id": "69",
+                "is_public": true,
+                "stdin": "11\n",
+                "expected_output": "No",
+                "test_id": "2"
+            }
+        ]
+    },
+    "test_cases": [
+        {
+            "ID": "000000000000000000000000",
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "12\n",
+            "expected_output": "Yes",
+            "test_id": "1"
+        },
+        {
+            "ID": "000000000000000000000000",
+            "problem_id": "69",
+            "is_public": true,
+            "stdin": "11\n",
+            "expected_output": "No",
+            "test_id": "2"
+        }
+    ]
+}
+

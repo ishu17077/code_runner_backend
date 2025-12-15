@@ -9,14 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/ishu17077/code_runner_backend/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 	"github.com/ishu17077/code_runner_backend/models/enums/language"
 	"github.com/ishu17077/code_runner_backend/runner/helpers"
 )
-
-var validate = validator.New()
 
 func main() {
 	inputBytes, err := io.ReadAll(os.Stdin)
@@ -44,14 +41,10 @@ func main() {
 		printInternalError("Invalid JSON Payload", err)
 		return
 	}
-	if validationErr := validate.Struct(submission); validationErr != nil {
-		printInternalError("Important values absent from payload", validationErr)
-		return
-	}
 
 	submission.Language = language.LanguageParser(submission.Language).ToString()
 
-	allPassed, execResults, err := helpers.AnalyzeSubmission(submission, submission.Tests)
+	allPassed, execResults, err := helpers.AnalyzeSubmission(submission)
 	var result models.Result = models.Result{
 		Results: execResults,
 	}

@@ -47,9 +47,9 @@ RUN chmod -R 755 /temp
 RUN echo "root:1923934edfdfKLJHDKJkwfjkf" | chpasswd 
 
 COPY --from=golang --chown=root:root /app/runner/runner .
-COPY --from=golang --chown=root:root /app/java_output/JavaExecutor.jar .
+COPY --from=golang --chown=root:root /app/java_output/JavaExecutor.jar /opt/JavaExecutor.jar
 
 RUN chmod 700 ./runner
-RUN chmod 755 ./JavaExecutor.jar
+RUN chmod 755 /opt/JavaExecutor.jar
 
 CMD ["sleep", "infinity"]

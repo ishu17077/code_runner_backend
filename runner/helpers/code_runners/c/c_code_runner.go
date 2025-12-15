@@ -48,10 +48,6 @@ func compileCode(filePath string, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
 	}
-	// fileMode := os.FileMode(0755)
-	// if chmodErr := os.Chmod("/temp/main", fileMode); chmodErr != nil {
-	// 	return fmt.Errorf("Failed to set execute permissions to file")
-	// }
 	return nil
 }
 
