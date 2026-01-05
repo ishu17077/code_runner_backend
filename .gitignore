@@ -4,3 +4,4 @@
 /**/env-configmap.yaml
 /**/*-secret.yaml
 /**/*.tar
+/**/__debug*
