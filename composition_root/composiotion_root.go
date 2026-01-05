@@ -27,8 +27,9 @@ func init() {
 }
 
 func Start() error {
-	routesDefine(router)
 	middlewareUse(router)
+	routesDefine(router)
+
 	return server.ListenAndServe()
 }
 
@@ -45,5 +46,7 @@ func routesDefine(router *gin.Engine) {
 }
 
 func middlewareUse(router *gin.Engine) {
+	router.Use(middlewares.CORSMiddleware())
+	router.SetTrustedProxies([]string{"127.0.0.1", "localhost"})
 	router.Use(middlewares.MaxAllowedSize(5 * 1024 * 1024)) //? 5 MB
 }

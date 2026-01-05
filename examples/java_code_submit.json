@@ -1,7 +1,7 @@
 {
     "problem_id": "69",
-    "language": "Java",
-    "code": "import java.util.Scanner; public class Solution{public static void main(String[] args){Scanner sc = new Scanner(System.in); int x = sc.nextInt(); if(x%2 == 0){System.out.println(\"Yes\");}else{System.out.println(\"No\");}}}",
+    "language": "Go",
+    "code": "package main\nimport \"fmt\"\nfunc main() {\n\tvar num int\n\tfmt.Scanf(\"%d\", &num)\n\tif num%2 == 0 {\n\t\tfmt.Printf(\"Yes\")\n\t} else {\n\t\tfmt.Printf(\"No\")\n\t}\n}\n",
     "tests": [
         {
             "problem_id": "69",

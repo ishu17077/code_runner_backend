@@ -82,7 +82,7 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := c.CheckSubmission(submission, testCase, outputPath)
+		res, err := c.CheckSubmission(testCase, outputPath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
@@ -112,7 +112,7 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := cpp.CheckSubmission(submission, testCase, outputPath)
+		res, err := cpp.CheckSubmission(testCase, outputPath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
@@ -141,7 +141,7 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := python.CheckSubmission(submission, testCase, filePath)
+		res, err := python.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
@@ -192,7 +192,7 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := c_sharp.CheckSubmission(submission, testCase, filePath)
+		res, err := c_sharp.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
@@ -220,7 +220,7 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := rust.CheckSubmission(submission, testCase, filePath)
+		res, err := rust.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
@@ -249,7 +249,7 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := golang.CheckSubmission(submission, testCase, filepath)
+		res, err := golang.CheckSubmission(testCase, filepath)
 		execResult, passed := getExecResult(submission, testCase, res, err)
 		if !passed {
 			allPassed = false
@@ -271,7 +271,7 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 func getExecResult(submission models.Submission, testCase models.TestCase, res currentstatus.CurrentStatus, err error) (models.ExecResult, bool) {
 	var execResult models.ExecResult = models.ExecResult{
 		ExecResult_id: bson.NewObjectID().Hex(),
-		Problem_id:    submission.ProblemID,
+		
 		Test_id:       testCase.Test_id,
 	}
 	if err != nil || res != currentstatus.SUCCESS {

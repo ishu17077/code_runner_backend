@@ -40,6 +40,18 @@ RUN gcc --version
 RUN python --version
 # RUN dotnet --list-sdks
 
+#? Go Warmup
+ENV CGO_ENABLED=0 
+ENV GOOS=linux
+ENV GOCACHE=/opt/go-cache
+RUN mkdir -p /opt/go-cache
+RUN echo 'package main; import "fmt"; func main(){ fmt.Println("Go Cache Warmput Complete....")}' > /tmp/warmup.go && \
+    GOCACHE=/opt/go-cache go build -o /tmp/warmup /tmp/warmup.go && \
+    rm -rf /tmp/warmup /tmp/warmup.go  && \
+    chown -R executor:executorgrp /opt/go-cache
+RUN 
+USER root
+
 
 RUN mkdir /temp
 RUN chmod -R 755 /temp

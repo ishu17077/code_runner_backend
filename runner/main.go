@@ -57,7 +57,7 @@ func main() {
 	if err != nil {
 		result.Error = err.Error()
 	}
-
+	result.Problem_id = submission.Problem_id
 	printFinalResult(result)
 	// var result models.Result
 	// result.Results = execResults

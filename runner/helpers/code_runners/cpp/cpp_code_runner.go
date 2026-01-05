@@ -28,7 +28,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 	return outputPath, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase, binaryFile string) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(test models.TestCase, binaryFile string) (currentstatus.CurrentStatus, error) {
 	res, err := executeCode(binaryFile, test.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err

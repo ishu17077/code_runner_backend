@@ -5,7 +5,6 @@ import (
 )
 
 type ExecResult struct {
-	Problem_id    string  `json:"problem_id" binding:"required"` //? if we wanna change just do bson:"problem_id"
 	Test_id       string  `json:"test_id"`
 	Status        *Status `json:"status"`
 	ExecResult_id string  `json:"exec_result_id"`

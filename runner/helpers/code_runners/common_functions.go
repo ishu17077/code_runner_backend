@@ -149,7 +149,11 @@ func SetPermissions(cmd *exec.Cmd) {
 		"RUST_HOME=/opt/Rust",
 		"RUSTUP_HOME=/opt/Rust/.rustup",
 		"CARGO_HOME=/opt/Rust/.cargo",
-		"REALLY=GOOD_LUCK_GETTING_ANYTHING"}
+		"REALLY=GOOD_LUCK_GETTING_ANYTHING",
+		"CGO_ENABLED=0",
+		"GOCACHE=/opt/go-cache",
+		"GOOS=linux",
+	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,

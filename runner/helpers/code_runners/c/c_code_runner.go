@@ -27,7 +27,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 	return outputPath, dirPath, nil
 }
 
-func CheckSubmission(submission models.Submission, test models.TestCase, binaryFile string) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(test models.TestCase, binaryFile string) (currentstatus.CurrentStatus, error) {
 
 	//TODO: Impl executeCcode test case
 	res, err := executeCode(binaryFile, test.Stdin)

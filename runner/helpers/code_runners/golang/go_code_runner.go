@@ -30,7 +30,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 
 }
 
-func CheckSubmission(submission models.Submission, testCase models.TestCase, binaryFilePath string) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(testCase models.TestCase, binaryFilePath string) (currentstatus.CurrentStatus, error) {
 	res, err := executeCode(binaryFilePath, testCase.Stdin)
 	if err != nil {
 		return currentstatus.FAILED, err
@@ -41,7 +41,7 @@ func CheckSubmission(submission models.Submission, testCase models.TestCase, bin
 func compileCode(filePath, outputPath string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "go", "build", "-o", outputPath)
+	cmd := exec.CommandContext(ctx, "go", "build", "-o", outputPath, filePath)
 	coderunners.SetPermissions(cmd)
 
 	_, err := cmd.CombinedOutput()
