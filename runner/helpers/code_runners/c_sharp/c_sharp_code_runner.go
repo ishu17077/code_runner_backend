@@ -35,6 +35,6 @@ func executeCode(filepath, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
-	runCmd := exec.CommandContext(ctx, "dotnet-script", filepath)
+	runCmd := exec.CommandContext(ctx, "dotnet", filepath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

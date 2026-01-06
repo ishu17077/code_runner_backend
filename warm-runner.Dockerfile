@@ -16,7 +16,7 @@ USER root
 
 WORKDIR /root/
 
-RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go
+RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go perl dotnet10-sdk
 #* dotnet9-sdk-aot 
 
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
@@ -31,7 +31,7 @@ RUN rustup-init -y && chown executor:executorgrp /opt/Rust -R
 #? Dotnet
 # RUN dotnet tool install -g dotnet-script
 # ENV PATH="$PATH:/root/.dotnet/tools"
-# RUN export DOTNET_NOLOGO=true
+ENV DOTNET_NOLOGO=true
 
 #? Sanity Checks
 RUN rustc --version
