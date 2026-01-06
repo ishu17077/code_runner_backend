@@ -13,6 +13,7 @@ import (
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/cpp"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/golang"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/java"
+	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/perl"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/python"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/rust"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -67,10 +68,45 @@ func AnalyzeSubmission(submission models.Submission) (bool, []models.ExecResult,
 			return false, execResults, err
 		}
 		return true, execResults, err
+	case language.Perl:
+		res, err := testPerlCode(submission, &execResults)
+		if err != nil || !res {
+			return false, execResults, err
+		}
+		return true, execResults, err
+
 	case language.Undefined:
 		return false, []models.ExecResult{}, fmt.Errorf("Invalid Language Provided")
 	}
 	return false, execResults, nil
+}
+
+func testPerlCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	filePath, dirPath, err := perl.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+
+	if err != nil {
+		return false, fmt.Errorf("Error processing the file: %s", err.Error())
+	}
+	errors := 0
+	for _, testCase := range submission.Tests {
+		output, err := perl.CheckSubmission(testCase, filePath)
+		execResult, passed := getExecResult(testCase, output, err)
+		if !passed {
+			allPassed = false
+		}
+		*execResults = append(*execResults, execResult)
+		if err != nil {
+			errors++
+			if errors > 2 {
+				return false, nil
+			}
+		} else {
+			errors = 0
+		}
+	}
+	return allPassed, err
 }
 
 func testCCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
@@ -137,7 +173,7 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 	filePath, dirPath, err := python.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
-		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
+		return false, fmt.Errorf("Error processing the file: %s", err.Error())
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {

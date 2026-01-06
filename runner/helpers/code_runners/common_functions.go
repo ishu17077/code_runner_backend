@@ -149,6 +149,7 @@ func SetPermissions(cmd *exec.Cmd) {
 	cmd.Env = []string{
 		"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.dotnet/tools:/opt/Rust/.cargo/bin",
 		"HOME=/tmp",
+		"DOTNET_NOLOGO=true",
 		"RUST_HOME=/opt/Rust",
 		"RUSTUP_HOME=/opt/Rust/.rustup",
 		"CARGO_HOME=/opt/Rust/.cargo",
