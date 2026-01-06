@@ -117,7 +117,7 @@ microk8s dashboard-proxy
 
 ## To call the API
 
-## Converting the programs to base64
+### Converting the programs to base64
 
 You need to convert your entire code to base64 encoding before passing down to api
 
