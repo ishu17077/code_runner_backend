@@ -41,6 +41,9 @@ func SaveFile(filePath string, dirPath string, code string) error {
 	if err := os.Chown(dirPath, 6969, 7070); err != nil {
 		return fmt.Errorf("Error chowning file: %w", err)
 	}
+	if err := os.Chdir(dirPath); err != nil {
+		return fmt.Errorf("Error changing directory: %w", err)
+	}
 	err := os.WriteFile(filePath, []byte(code), 0755)
 	if err != nil {
 		return fmt.Errorf("Cannot save file: %w", err)
@@ -150,10 +153,10 @@ func SetPermissions(cmd *exec.Cmd) {
 		"RUSTUP_HOME=/opt/Rust/.rustup",
 		"CARGO_HOME=/opt/Rust/.cargo",
 		"REALLY=GOOD_LUCK_GETTING_ANYTHING",
-		"CGO_ENABLED=0",
 		"GOCACHE=/opt/go-cache",
 		"GOOS=linux",
 	}
+	print(cmd.Dir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
 			Uid: 6969,
@@ -164,14 +167,15 @@ func SetPermissions(cmd *exec.Cmd) {
 
 // func SetResourceLimits(cmd *exec.Cmd) error {
 
-// 	if err := cGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
-// 		fmt.Printf("Error adding process to cgroup: %v\n", err)
-// 		cmd.Process.Kill()
-// 		return fmt.Errorf("Unable to attach to cgroup")
-// 	}
-// 	return nil
-// }
-
+//		if err := cGroupManager.AddProc(uint64(cmd.Process.Pid)); err != nil {
+//			fmt.Printf("Error adding process to cgroup: %v\n", err)
+//			cmd.Process.Kill()
+//			return fmt.Errorf("Unable to attach to cgroup")
+//		}
+//		return nil
+//	}
+//
+// TODO: Fix Multiline Output
 func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.CurrentStatus, error) {
 	actualOutput = strings.TrimSpace(actualOutput)
 	expectedOutput = strings.TrimSpace(expectedOutput)

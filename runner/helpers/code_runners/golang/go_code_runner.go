@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ishu17077/code_runner_backend/models"
-	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 	coderunners "github.com/ishu17077/code_runner_backend/runner/helpers/code_runners"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -30,21 +29,21 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 
 }
 
-func CheckSubmission(testCase models.TestCase, binaryFilePath string) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(testCase models.TestCase, binaryFilePath string) (string, error) {
 	res, err := executeCode(binaryFilePath, testCase.Stdin)
-	if err != nil {
-		return currentstatus.FAILED, err
-	}
-	return coderunners.CheckOutput(res, testCase.ExpectedOutput)
+	return res, err
+
 }
 
 func compileCode(filePath, outputPath string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "go", "build", "-o", outputPath, filePath)
+
 	coderunners.SetPermissions(cmd)
 
 	_, err := cmd.CombinedOutput()
+
 	if err != nil {
 		return fmt.Errorf("Compilation Failed: %s", err.Error())
 	}

@@ -82,9 +82,9 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := c.CheckSubmission(testCase, outputPath)
+		output, err := c.CheckSubmission(testCase, outputPath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -112,9 +112,9 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := cpp.CheckSubmission(testCase, outputPath)
+		output, err := cpp.CheckSubmission(testCase, outputPath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -141,9 +141,9 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := python.CheckSubmission(testCase, filePath)
+		output, err := python.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -192,9 +192,9 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := c_sharp.CheckSubmission(testCase, filePath)
+		output, err := c_sharp.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -220,9 +220,9 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := rust.CheckSubmission(testCase, filePath)
+		output, err := rust.CheckSubmission(testCase, filePath)
 		var execResult models.ExecResult
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -249,8 +249,8 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		res, err := golang.CheckSubmission(testCase, filepath)
-		execResult, passed := getExecResult(submission, testCase, res, err)
+		output, err := golang.CheckSubmission(testCase, filepath)
+		execResult, passed := getExecResult(submission, testCase, output, err)
 		if !passed {
 			allPassed = false
 		}
@@ -268,17 +268,28 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 	return allPassed, nil
 }
 
-func getExecResult(submission models.Submission, testCase models.TestCase, res currentstatus.CurrentStatus, err error) (models.ExecResult, bool) {
+func getExecResult(submission models.Submission, testCase models.TestCase, output string, err error) (models.ExecResult, bool) {
 	var execResult models.ExecResult = models.ExecResult{
 		ExecResult_id: bson.NewObjectID().Hex(),
-		
 		Test_id:       testCase.Test_id,
 	}
-	if err != nil || res != currentstatus.SUCCESS {
+
+	if err != nil {
 		execResult.Status = &models.Status{
 			Message:        err.Error(),
 			Current_status: currentstatus.FAILED.ToString(),
-			Stdout:         "",
+			Stdout:         output,
+			Stderr:         err.Error(),
+			Completed_At:   time.Now(),
+		}
+		return execResult, false
+	}
+	var status, testResErr = coderunners.CheckOutput(output, testCase.ExpectedOutput)
+	if testResErr != nil || status != currentstatus.SUCCESS {
+		execResult.Status = &models.Status{
+			Message:        testResErr.Error(),
+			Current_status: currentstatus.FAILED.ToString(),
+			Stdout:         output,
 			Stderr:         "",
 			Completed_At:   time.Now(),
 		}
@@ -288,7 +299,7 @@ func getExecResult(submission models.Submission, testCase models.TestCase, res c
 		execResult.Status = &models.Status{
 			Message:        fmt.Sprintf("Test: #%s Passed", testCase.Test_id),
 			Current_status: currentstatus.SUCCESS.ToString(),
-			Stdout:         "",
+			Stdout:         output,
 			Stderr:         "",
 			Completed_At:   time.Now(),
 		}

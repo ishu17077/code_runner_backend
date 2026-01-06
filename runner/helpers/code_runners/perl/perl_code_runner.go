@@ -5,7 +5,6 @@ import (
 	"os/exec"
 
 	"github.com/ishu17077/code_runner_backend/models"
-	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 	coderunners "github.com/ishu17077/code_runner_backend/runner/helpers/code_runners"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -21,12 +20,9 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 	return filePath, dirPath, nil
 }
 
-func CheckSubmission(testcase models.TestCase, filePath string) (currentstatus.CurrentStatus, error) {
+func CheckSubmission(testcase models.TestCase, filePath string) (string, error) {
 	res, err := executeCode(filePath, testcase.Stdin)
-	if err != nil {
-		return currentstatus.FAILED, err
-	}
-	return coderunners.CheckOutput(res, testcase.ExpectedOutput)
+	return res, err
 }
 
 func executeCode(filePath string, stdin string) (string, error) {
