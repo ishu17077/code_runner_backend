@@ -226,7 +226,9 @@ func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models
 			allPassed = false
 			result.Status = currentstatus.FAILED.ToString()
 			result.Results[i].Status.Message = fmt.Sprintf("Expected Output: %s, Actual Ouptut: %s", allTests[i].ExpectedOutput, execResult.Status.Stdout)
-			result.Results[i].Status.Current_status = "FAILED"
+			if result.Results[i].Status.Current_status == "EXECUTION_SUCCESS" {
+				result.Results[i].Status.Current_status = currentstatus.FAILED.ToString()
+			}
 			result.Results[i].Status.Stdin = allTests[i].Stdin
 			result.Results[i].Status.Expected_output = allTests[i].ExpectedOutput
 
