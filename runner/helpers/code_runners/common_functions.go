@@ -221,12 +221,15 @@ func CheckJavaOutput(allOutput string, allTests []models.TestCase) (bool, models
 	}
 
 	for i, execResult := range result.Results {
-		execResult.ExecResult_id = bson.NewObjectID().Hex()
-
-		if strings.TrimSpace(allTests[i].ExpectedOutput) != strings.TrimSpace(execResult.Status.Stdout) {
+		result.Results[i].ExecResult_id = bson.NewObjectID().Hex()
+		if cs, err := CheckOutput(allTests[i].ExpectedOutput, execResult.Status.Stdout); cs != currentstatus.SUCCESS && err != nil {
 			allPassed = false
 			result.Status = currentstatus.FAILED.ToString()
 			result.Results[i].Status.Message = fmt.Sprintf("Expected Output: %s, Actual Ouptut: %s", allTests[i].ExpectedOutput, execResult.Status.Stdout)
+			result.Results[i].Status.Current_status = "FAILED"
+			result.Results[i].Status.Stdin = allTests[i].Stdin
+			result.Results[i].Status.Expected_output = allTests[i].ExpectedOutput
+
 		} else {
 			result.Results[i].Status.Current_status = currentstatus.SUCCESS.ToString()
 		}

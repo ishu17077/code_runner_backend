@@ -11,9 +11,11 @@ type ExecResult struct {
 }
 
 type Status struct {
-	Message        string    `json:"message"`
-	Current_status string    `json:"current_status"`
-	Stdout         string    `json:"stdout"`
-	Stderr         string    `json:"stderr"`
-	Completed_At   time.Time `json:"completed_at"`
+	Message         string    `json:"message"`
+	Current_status  string    `json:"current_status"`
+	Stdout          string    `json:"stdout"`
+	Stderr          string    `json:"stderr"`
+	Stdin           string    `json:"stdin"`
+	Expected_output string    `json:"expected_output"`
+	Completed_At    time.Time `json:"completed_at"`
 }
