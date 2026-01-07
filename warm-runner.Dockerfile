@@ -37,8 +37,9 @@ ENV DOTNET_NOLOGO=true
 RUN rustc --version
 RUN java -version
 RUN gcc --version
+RUN perl --version
 RUN python --version
-# RUN dotnet --list-sdks
+RUN dotnet --list-sdks
 
 #? Go Warmup
 ENV GOOS=linux
