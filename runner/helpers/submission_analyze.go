@@ -81,34 +81,6 @@ func AnalyzeSubmission(submission models.Submission) (bool, []models.ExecResult,
 	return false, execResults, nil
 }
 
-func testPerlCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
-	var allPassed = true
-	filePath, dirPath, err := perl.PreCompilationTask(submission)
-	defer cleanUp(dirPath)
-
-	if err != nil {
-		return false, fmt.Errorf("Error processing the file: %s", err.Error())
-	}
-	errors := 0
-	for _, testCase := range submission.Tests {
-		output, err := perl.CheckSubmission(testCase, filePath)
-		execResult, passed := getExecResult(testCase, output, err)
-		if !passed {
-			allPassed = false
-		}
-		*execResults = append(*execResults, execResult)
-		if err != nil {
-			errors++
-			if errors > 2 {
-				return false, nil
-			}
-		} else {
-			errors = 0
-		}
-	}
-	return allPassed, err
-}
-
 func testCCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
 	outputPath, dirPath, err := c.PreCompilationTask(submission)
@@ -118,9 +90,11 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
+		startTime := time.Now()
 		output, err := c.CheckSubmission(testCase, outputPath)
-		var execResult models.ExecResult
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -148,9 +122,11 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
+		startTime := time.Now()
 		output, err := cpp.CheckSubmission(testCase, outputPath)
-		var execResult models.ExecResult
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -177,9 +153,11 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
+		startTime := time.Now()
 		output, err := python.CheckSubmission(testCase, filePath)
-		var execResult models.ExecResult
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -228,9 +206,11 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
+		startTime := time.Now()
 		output, err := c_sharp.CheckSubmission(testCase, filePath)
-		var execResult models.ExecResult
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -249,16 +229,18 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 
 func testRustCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	filePath, dirPath, err := rust.PreCompilationTask(submission)
+	outputPath, dirPath, err := rust.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		output, err := rust.CheckSubmission(testCase, filePath)
-		var execResult models.ExecResult
+		startTime := time.Now()
+		output, err := rust.CheckSubmission(testCase, outputPath)
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -278,15 +260,18 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 
 func testGoCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
-	filepath, dirPath, err := golang.PreCompilationTask(submission)
+	outputPath, dirPath, err := golang.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
 		return false, fmt.Errorf("Error compiling the file: %s", err.Error())
 	}
 	errors := 0
 	for _, testCase := range submission.Tests {
-		output, err := golang.CheckSubmission(testCase, filepath)
+		startTime := time.Now()
+		output, err := golang.CheckSubmission(testCase, outputPath)
+		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
 		}
@@ -302,6 +287,38 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 		}
 	}
 	return allPassed, nil
+}
+
+func testPerlCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	filePath, dirPath, err := perl.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+
+	if err != nil {
+		return false, fmt.Errorf("Error processing the file: %s", err.Error())
+	}
+
+	errors := 0
+	for _, testCase := range submission.Tests {
+		startTime := time.Now()
+		output, err := perl.CheckSubmission(testCase, filePath)
+		execTime := time.Since(startTime).Milliseconds()
+		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint16(execTime)
+		if !passed {
+			allPassed = false
+		}
+		*execResults = append(*execResults, execResult)
+		if err != nil {
+			errors++
+			if errors > 2 {
+				return false, nil
+			}
+		} else {
+			errors = 0
+		}
+	}
+	return allPassed, err
 }
 
 func getExecResult(testCase models.TestCase, output string, err error) (models.ExecResult, bool) {
