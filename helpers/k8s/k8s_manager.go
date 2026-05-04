@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
+	"github.com/ishu17077/code_runner_backend/helpers/pipe"
 	"github.com/ishu17077/code_runner_backend/models"
 	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 	corev1 "k8s.io/api/core/v1"
@@ -49,7 +51,7 @@ func NewK8sManager() *K8sManager {
 	}
 }
 
-func (k *K8sManager) RunOnPod(submission models.Submission) (models.Result, error) {
+func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, error) {
 	//TODO: return models.Result instead of string
 	executorPod, err := k.findRandomWarmPod()
 	if err != nil {
@@ -83,6 +85,59 @@ func (k *K8sManager) RunOnPod(submission models.Submission) (models.Result, erro
 		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Memory Limit Exceeded"), fmt.Errorf("execution failed: %v | stderr: %s", execErr, stderr)
 	}
 	return extractJsonFromStdout(output), nil
+}
+
+func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) error {
+	ws.WriteMessage(websocket.TextMessage, []byte("Preparing a terminal window"))
+
+	executorPod, err := k.findRandomWarmPod()
+
+	if err != nil {
+		return fmt.Errorf("Unable to execute the program.")
+	}
+	defer ws.Close()
+
+	session := &pipe.TerminalSession{
+		Ws:       ws,
+		SizeChan: make(chan remotecommand.TerminalSize),
+		DoneChan: make(chan struct{}),
+	}
+
+	fmt.Printf("Executing in pod: %s\n", executorPod)
+	req := k.clientSet.CoreV1().RESTClient().Post().
+		Resource("pods").
+		Name(executorPod).
+		Namespace("default").
+		SubResource("exec")
+
+	options := &corev1.PodExecOptions{
+		Container: "warm-runner",
+		Stdin:     true,
+		Stdout:    true,
+		Stderr:    true,
+		Command:   []string{"/bin/sh"},
+		TTY:       true,
+	}
+
+	req.VersionedParams(options, scheme.ParameterCodec)
+	exec, err := remotecommand.NewSPDYExecutor(k.config, "POST", req.URL())
+
+	if err != nil {
+		ws.WriteMessage(websocket.TextMessage, []byte("Failed to initialize executor \r\n"))
+		return nil
+	}
+
+	err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
+		Stdin:             session,
+		Stdout:            session,
+		Stderr:            session,
+		Tty:               true,
+		TerminalSizeQueue: session,
+	})
+	if err != nil {
+		ws.WriteMessage(websocket.TextMessage, []byte("\r\n--- Stream Closed ---\r\n"))
+	}
+	return nil
 }
 
 func (k *K8sManager) findRandomWarmPod() (string, error) {

@@ -5,12 +5,14 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/ishu17077/code_runner_backend/middlewares"
 	"github.com/ishu17077/code_runner_backend/routes"
 )
 
 var router *gin.Engine
 var server *http.Server
+var upgrader *websocket.Upgrader
 
 func init() {
 	port := os.Getenv("WORKER_PORT")
@@ -24,6 +26,12 @@ func init() {
 		Addr:    ":" + port,
 		Handler: router,
 	}
+
+	upgrader = &websocket.Upgrader{
+		ReadBufferSize: 1024,
+		WriteBufferSize: 1024,
+	}
+
 }
 
 func Start() error {
@@ -39,9 +47,10 @@ func Stop() error {
 
 func routesDefine(router *gin.Engine) {
 	submissionRoutes := router.Group("/submission")
+	
 	adminRoutes := router.Group("/admin")
 
-	routes.SubmissionRoutes(submissionRoutes)
+	routes.SubmissionRoutes(submissionRoutes, upgrader)
 	routes.AdminRoutes(adminRoutes)
 }
 

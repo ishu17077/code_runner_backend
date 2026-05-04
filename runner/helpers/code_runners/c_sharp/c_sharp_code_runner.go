@@ -8,33 +8,49 @@ import (
 
 	"github.com/ishu17077/code_runner_backend/models"
 	coderunners "github.com/ishu17077/code_runner_backend/runner/helpers/code_runners"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 //TODO: Compile with dotnet 10 sdk the 9 doens't really work
 
 func PreCompilationTask(submission models.Submission) (string, string, error) {
-	newId := bson.NewObjectID().Hex()
-	var dirPath = fmt.Sprintf("/temp/%s", newId)
+	var dirPath = "/opt/dotnet-project"
 	var filePath = fmt.Sprintf("%s/Program.cs", dirPath)
+	var outputPath = fmt.Sprintf("%s/bin/release/net10.0/dotnet", dirPath)
 
 	//TODO: ADD PRECOMPILATION Step with dotnet
 	//! dotnet new console -n HelloWorld Replace Helloword with newId
-
+	//? Thiw would automatically change dirs to filePath
 	if err := coderunners.SaveFile(filePath, dirPath, submission.Code); err != nil {
 		return "", dirPath, err
 	}
-	return filePath, dirPath, nil
+
+	if err := compileCode(); err != nil {
+		return filePath, dirPath, err
+	}
+	return outputPath, dirPath, nil
 }
 
-func CheckSubmission(test models.TestCase, filePath string) (string, error) {
-	return executeCode(filePath, test.Stdin)
+func CheckSubmission(test models.TestCase, binaryFile string) (string, error) {
+	return executeCode(binaryFile, test.Stdin)
 }
 
-func executeCode(filepath, stdin string) (string, error) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 4*time.Second)
+func compileCode() error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 6*time.Second)
 	defer cancel()
 
-	runCmd := exec.CommandContext(ctx, "dotnet", filepath)
+	cmd := exec.CommandContext(ctx, "dotnet", "build", "-c", "release")
+	coderunners.SetPermissions(cmd)
+
+	if res, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("Compilation Failed: %s %s", err.Error(), string(res))
+	}
+	return nil
+}
+
+func executeCode(binaryFilePath, stdin string) (string, error) {
+	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

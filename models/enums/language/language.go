@@ -37,7 +37,7 @@ func (language Language) ToString() string {
 	case Perl:
 		return "perl"
 	default:
-		return "Undefined"
+		return "undefined"
 	}
 }
 
