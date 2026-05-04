@@ -57,7 +57,13 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 	if err != nil {
 		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program."), err
 	}
+	defer func() {
+		cleanupErr := k.destroyPod(executorPod)
 
+		if cleanupErr != nil {
+			fmt.Printf("Warning: Failed to delete pod %s: %v\n", executorPod, cleanupErr)
+		}
+	}()
 	fmt.Printf("Executing in pod: %s\n", executorPod)
 
 	stdinPayload, err := json.Marshal(submission)
@@ -69,14 +75,6 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 	cmd := []string{"./runner"}
 
 	output, stderr, execErr := k.execInPod(executorPod, cmd, stdinPayload)
-
-	cleanupErr := k.clientSet.CoreV1().Pods("default").Delete(context.Background(), executorPod, metav1.DeleteOptions{
-		GracePeriodSeconds: k.ptr(0),
-	})
-
-	if cleanupErr != nil {
-		fmt.Printf("Warning: Failed to delete pod %s: %v\n", executorPod, cleanupErr)
-	}
 
 	if execErr != nil {
 		if errors.Is(execErr, context.DeadlineExceeded) {
@@ -95,7 +93,14 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 	if err != nil {
 		return fmt.Errorf("Unable to execute the program.")
 	}
-	defer ws.Close()
+
+	defer func() {
+		ws.Close()
+		cleanupErr := k.destroyPod(executorPod)
+		if cleanupErr != nil {
+			fmt.Printf("Warning: Failed to delete pod %s: %v\n", executorPod, cleanupErr)
+		}
+	}()
 
 	session := &pipe.TerminalSession{
 		Ws:       ws,
@@ -115,8 +120,20 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 		Stdin:     true,
 		Stdout:    true,
 		Stderr:    true,
-		Command:   []string{"/bin/sh"},
-		TTY:       true,
+		Command: []string{"su", "-", "executor", "-c",
+			"env " +
+				"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.dotnet/tools:/opt/Rust/.cargo/bin:/opt/dotnet/tools " +
+				"HOME=/tmp " +
+				"DOTNET_NOLOGO=true " +
+				"RUST_HOME=/opt/Rust " +
+				"RUSTUP_HOME=/opt/Rust/.rustup " +
+				"CARGO_HOME=/opt/Rust/.cargo " +
+				"REALLY=GOOD_LUCK_GETTING_ANYTHING " +
+				"GOCACHE=/opt/go-cache " +
+				"GOOS=linux " +
+				"/bin/sh",
+		},
+		TTY: true,
 	}
 
 	req.VersionedParams(options, scheme.ParameterCodec)
@@ -134,6 +151,7 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 		Tty:               true,
 		TerminalSizeQueue: session,
 	})
+
 	if err != nil {
 		ws.WriteMessage(websocket.TextMessage, []byte("\r\n--- Stream Closed ---\r\n"))
 	}
@@ -237,6 +255,12 @@ func extractJsonFromStdout(res string) models.Result {
 
 	return result
 
+}
+func (k *K8sManager) destroyPod(executorPod string) error {
+	cleanupErr := k.clientSet.CoreV1().Pods("default").Delete(context.Background(), executorPod, metav1.DeleteOptions{
+		GracePeriodSeconds: k.ptr(0),
+	})
+	return cleanupErr
 }
 
 func emptyResult(status currentstatus.CurrentStatus, err string) models.Result {

@@ -73,7 +73,7 @@ func printFinalResult(res models.Result) {
 	fmt.Println("---JSON_START---")
 	jsonData, err := json.Marshal(res)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Printf("%s", err.Error())
 		fmt.Println("---JSON_END---")
 		return
 	}

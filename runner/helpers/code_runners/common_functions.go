@@ -75,7 +75,6 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 		//? If the command context timed out, time limit exceeded.
 		return "", TleError
 	}
-
 	return outputBuffer.String(), nil
 }
 

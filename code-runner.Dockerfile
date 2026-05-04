@@ -1,4 +1,4 @@
-FROM golang:1.25.5-alpine3.23 AS golang
+FROM golang:1.26.2-alpine3.23 AS golang
 WORKDIR /app
 
 COPY ./go.mod .

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -29,8 +30,8 @@ func PublicTestSubmission() gin.HandlerFunc {
 			c.JSON(http.StatusNoContent, gin.H{"error": "No tests provided"})
 			return
 		}
-		if len(submission.Tests) > 5 {
-			c.JSON(http.StatusNotAcceptable, gin.H{"error": "Cannot have more than 3 tests in public submission"})
+		if len(submission.Tests) > 10 {
+			c.JSON(http.StatusNotAcceptable, gin.H{"error": "Cannot have more than 10 tests in public submission"})
 			return
 		}
 		codeBytes, err := base64.StdEncoding.DecodeString(submission.Code)
@@ -118,6 +119,9 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 			return
 		}
 		defer ws.Close()
+		
+		go checkAlive(ws)
+
 		var submission models.Submission
 		if err := ws.ReadJSON(&submission); err != nil {
 			ws.WriteMessage(websocket.TextMessage, []byte(err.Error()))
@@ -144,5 +148,21 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 			return
 		}
 
+	}
+}
+
+func checkAlive(ws *websocket.Conn) {
+	ticker := time.NewTicker(30 * time.Second)
+
+	defer ticker.Stop()
+
+	for {
+		<-ticker.C //? Next ticker
+
+		err := ws.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(5*time.Second))
+		if err != nil {
+			ws.Close()
+			return
+		}
 	}
 }

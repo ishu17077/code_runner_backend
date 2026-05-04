@@ -8,11 +8,12 @@ import (
 )
 
 type Submission struct {
-	ID         string     `json:"id"`
-	Problem_id string     `json:"problem_id"`
-	Language   string     `json:"language" binding:"required" validate:"required"`
-	Code       string     `json:"code" binding:"required" validate:"required"`
-	Tests      []TestCase `json:"tests"`
+	ID          string       `json:"id"`
+	Problem_id  string       `json:"problem_id"`
+	Language    string       `json:"language" binding:"required" validate:"required,min=3,max=10"`
+	Code        string       `json:"code" binding:"required" validate:"required,min=3,max=7000000"`
+	Attachments []Attachment `json:"attachments"`
+	Tests       []TestCase   `json:"tests"`
 }
 
 var validBase64Regex = regexp.MustCompile(`^[a-zA-Z0-9+/]*={0,2}$`)

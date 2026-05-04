@@ -1,4 +1,4 @@
-FROM golang:1.25.5-alpine3.23 AS golang
+FROM golang:1.26.2-alpine3.23 AS golang
 WORKDIR /app
 
 COPY ./go.mod .
@@ -18,7 +18,7 @@ WORKDIR /root/
 
 RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go perl dotnet10-sdk-aot
 
-RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
+RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S -s /bin/sh executor
 
 #? Rust
 ENV RUST_HOME="/opt/Rust"
