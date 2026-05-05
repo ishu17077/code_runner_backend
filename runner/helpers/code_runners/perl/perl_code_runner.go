@@ -1,8 +1,10 @@
 package perl
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/ishu17077/code_runner_backend/models"
 	coderunners "github.com/ishu17077/code_runner_backend/runner/helpers/code_runners"
@@ -20,12 +22,21 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 	return filePath, dirPath, nil
 }
 
+func PipeSubmission(filePath string) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, "perl", filePath)
+	return coderunners.PipeCommand(runCmd)
+}
+
 func CheckSubmission(testcase models.TestCase, filePath string) (string, error) {
 	res, err := executeCode(filePath, testcase.Stdin)
 	return res, err
 }
 
 func executeCode(filePath string, stdin string) (string, error) {
-	runCmd := exec.Command("perl", filePath)
+	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, "per;", filePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

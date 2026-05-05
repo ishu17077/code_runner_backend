@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -44,7 +45,7 @@ func PublicTestSubmission() gin.HandlerFunc {
 			return
 		}
 		submission.Code = string(codeBytes)
-
+		submission.Pipe = false
 		res, err := k8s.K8sMgr.RunCodeTests(submission)
 
 		if err != nil {
@@ -91,6 +92,7 @@ func PrivateTestSubmission() gin.HandlerFunc {
 			return
 		}
 		submission.Code = string(codeBytes)
+		submission.Pipe = false
 
 		res, err := k8s.K8sMgr.RunCodeTests(submission)
 
@@ -119,7 +121,7 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 			return
 		}
 		defer ws.Close()
-		
+
 		go checkAlive(ws)
 
 		var submission models.Submission
@@ -132,7 +134,7 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 			ws.WriteMessage(websocket.TextMessage, []byte(err.Error()))
 			return
 		}
-
+		submission.Pipe = true
 		codeBytes, err := base64.StdEncoding.DecodeString(submission.Code)
 
 		if err != nil {
@@ -145,7 +147,7 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 		err = k8s.K8sMgr.RunCode(ws, submission)
 
 		if err != nil {
-			return
+			fmt.Println(err)
 		}
 
 	}

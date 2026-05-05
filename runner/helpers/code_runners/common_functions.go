@@ -78,6 +78,19 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	return outputBuffer.String(), nil
 }
 
+func PipeCommand(runCmd *exec.Cmd) error {
+	SetPermissions(runCmd)
+
+	runCmd.Stdout = os.Stdout
+	runCmd.Stderr = os.Stderr
+	runCmd.Stdin = os.Stdin
+
+	if startErr := runCmd.Run(); startErr != nil {
+		return fmt.Errorf("Unable to start the program %s", startErr.Error())
+	}
+	return nil
+}
+
 // func setUpCGroup() (*v3.Manager, *os.File) {
 // 	var memeoryLimitBytes int64 = 180 * 1024 * 1024
 // 	var highThresholdBytes int64 = 120 * 1024 * 1024

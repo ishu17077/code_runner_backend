@@ -27,10 +27,16 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 }
 
 func CheckSubmission(test models.TestCase, binaryFile string) (string, error) {
-
 	//TODO: Impl executeCcode test case
 	return executeCode(binaryFile, test.Stdin)
 
+}
+
+func PipeSubmission(binaryFilePath string) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
+	return coderunners.PipeCommand(runCmd)
 }
 
 func compileCode(filePath string, outputPath string) error {
@@ -48,7 +54,6 @@ func compileCode(filePath string, outputPath string) error {
 }
 
 func executeCode(binaryFilePath string, stdin string) (string, error) {
-
 	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, binaryFilePath)

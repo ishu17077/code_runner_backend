@@ -31,6 +31,13 @@ func CheckSubmission(test models.TestCase, binaryFilePath string) (string, error
 
 }
 
+func PipeSubmission(binaryFilePath string) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
+	return coderunners.PipeCommand(runCmd)
+}
+
 func compileCode(filePath, outputPath string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

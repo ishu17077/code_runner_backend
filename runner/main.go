@@ -44,6 +44,15 @@ func main() {
 
 	submission.Language = language.LanguageParser(submission.Language).ToString()
 
+	if submission.Pipe == true {
+		err := helpers.ExecuteSubmissionAndPipe(submission)
+		if err != nil {
+			fmt.Printf("Something went wrong please try again")
+			return
+		}
+		return
+	}
+
 	allPassed, execResults, err := helpers.AnalyzeSubmission(submission)
 	var result models.Result = models.Result{
 		Results: execResults,

@@ -67,11 +67,11 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 	fmt.Printf("Executing in pod: %s\n", executorPod)
 
 	stdinPayload, err := json.Marshal(submission)
-
-	stdinPayload = []byte(base64.StdEncoding.EncodeToString(stdinPayload))
 	if err != nil {
 		return emptyResult(currentstatus.INTERNAL_ERROR, "Unable to execute the program."), fmt.Errorf("Conversion to JSON failed: %s", err.Error())
 	}
+	stdinPayload = []byte(base64.StdEncoding.EncodeToString(stdinPayload))
+
 	cmd := []string{"./runner"}
 
 	output, stderr, execErr := k.execInPod(executorPod, cmd, stdinPayload)
@@ -87,8 +87,9 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 
 func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) error {
 	ws.WriteMessage(websocket.TextMessage, []byte("Preparing a terminal window"))
-
 	executorPod, err := k.findRandomWarmPod()
+
+	streamErrChan := make(chan error)
 
 	if err != nil {
 		return fmt.Errorf("Unable to execute the program.")
@@ -96,16 +97,24 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 
 	defer func() {
 		ws.Close()
-		cleanupErr := k.destroyPod(executorPod)
-		if cleanupErr != nil {
-			fmt.Printf("Warning: Failed to delete pod %s: %v\n", executorPod, cleanupErr)
+		if executorPod != "" {
+			cleanupErr := k.destroyPod(executorPod)
+			if cleanupErr != nil {
+				fmt.Printf("Warning: Failed to delete pod %s: %v\n", executorPod, cleanupErr)
+			}
 		}
 	}()
+	stdinPayload, err := json.Marshal(submission)
+	if err != nil {
+		return fmt.Errorf("Conversion to JSON failed: %s", err.Error())
+	}
+	stdinPayload = []byte(strings.Join([]string{base64.StdEncoding.EncodeToString(stdinPayload), "\n\x04"}, ""))
 
 	session := &pipe.TerminalSession{
-		Ws:       ws,
-		SizeChan: make(chan remotecommand.TerminalSize),
-		DoneChan: make(chan struct{}),
+		Ws:           ws,
+		InitialInput: bytes.NewBuffer(stdinPayload),
+		SizeChan:     make(chan remotecommand.TerminalSize),
+		DoneChan:     make(chan struct{}, 1),
 	}
 
 	fmt.Printf("Executing in pod: %s\n", executorPod)
@@ -120,20 +129,8 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 		Stdin:     true,
 		Stdout:    true,
 		Stderr:    true,
-		Command: []string{"su", "-", "executor", "-c",
-			"env " +
-				"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.dotnet/tools:/opt/Rust/.cargo/bin:/opt/dotnet/tools " +
-				"HOME=/tmp " +
-				"DOTNET_NOLOGO=true " +
-				"RUST_HOME=/opt/Rust " +
-				"RUSTUP_HOME=/opt/Rust/.rustup " +
-				"CARGO_HOME=/opt/Rust/.cargo " +
-				"REALLY=GOOD_LUCK_GETTING_ANYTHING " +
-				"GOCACHE=/opt/go-cache " +
-				"GOOS=linux " +
-				"/bin/sh",
-		},
-		TTY: true,
+		Command:   []string{"./runner"},
+		TTY:       true,
 	}
 
 	req.VersionedParams(options, scheme.ParameterCodec)
@@ -144,18 +141,24 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 		return nil
 	}
 
-	err = exec.StreamWithContext(context.TODO(), remotecommand.StreamOptions{
-		Stdin:             session,
-		Stdout:            session,
-		Stderr:            session,
-		Tty:               true,
-		TerminalSizeQueue: session,
-	})
+	go func() {
+		streamErrChan <- exec.StreamWithContext(context.Background(), remotecommand.StreamOptions{
+			Stdin:             session,
+			Stdout:            session,
+			Stderr:            session,
+			Tty:               true,
+			TerminalSizeQueue: session,
+		})
+	}()
 
-	if err != nil {
-		ws.WriteMessage(websocket.TextMessage, []byte("\r\n--- Stream Closed ---\r\n"))
+	select {
+	case err := <-streamErrChan:
+		fmt.Println("Execution finished naturally:", err)
+		return err
+	case <-session.DoneChan:
+		fmt.Println("RunCode aborted due to WebSocket drop.")
+		return fmt.Errorf("client disconnected")
 	}
-	return nil
 }
 
 func (k *K8sManager) findRandomWarmPod() (string, error) {

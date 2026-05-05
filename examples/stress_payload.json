@@ -1,6 +1,7 @@
 {
   "problem_id": "69",
     "language": "C",
+    "pipe": false,
     "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==",
   "tests":[
     {"problem_id":"69","is_public":true,"stdin":"12\n","expected_output":"Yes","test_id":"1"},

@@ -13,6 +13,7 @@ type Submission struct {
 	Language    string       `json:"language" binding:"required" validate:"required,min=3,max=10"`
 	Code        string       `json:"code" binding:"required" validate:"required,min=3,max=7000000"`
 	Attachments []Attachment `json:"attachments"`
+	Pipe        bool         `json:"pipe"`
 	Tests       []TestCase   `json:"tests"`
 }
 

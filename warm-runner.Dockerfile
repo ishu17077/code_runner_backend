@@ -18,7 +18,7 @@ WORKDIR /root/
 
 RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go perl dotnet10-sdk-aot
 
-RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S -s /bin/sh executor
+RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S -s /bin/sh
 
 #? Rust
 ENV RUST_HOME="/opt/Rust"
@@ -43,17 +43,6 @@ RUN echo 'using System;public class Program{public static void Main(string[] arg
     chown executor:executorgrp /opt/dotnet-project -R
 RUN  ./bin/Release/net10.0/dotnet-project
 
-WORKDIR /
-
-
-#? Sanity Checks
-RUN rustc --version
-RUN java -version
-RUN gcc --version
-RUN perl --version
-RUN python --version
-RUN dotnet --list-sdks
-
 #? Go Warmup
 ENV GOOS=linux
 ENV GOCACHE=/opt/go-cache
@@ -64,6 +53,17 @@ RUN echo 'package main; import "fmt"; func main(){ fmt.Println("Go Cache Warmput
     chown -R executor:executorgrp /opt/go-cache
 USER root
 
+WORKDIR /
+
+
+#? Sanity Checks
+RUN rustc --version
+RUN java -version
+RUN gcc --version
+RUN perl --version
+RUN python --version
+RUN dotnet --list-sdks
+RUN go version
 
 
 

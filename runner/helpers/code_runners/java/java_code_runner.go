@@ -58,6 +58,21 @@ func CheckSubmission(payload models.JavaDriverPayload, className, classPath stri
 	return coderunners.CheckJavaOutput(res, payload.Tests)
 }
 
+func PipeSubmission(classPath, className string) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, "java",
+		"-XX:+UseSerialGC",        //? Lightweight GC
+		"-XX:TieredStopAtLevel=1", //? Fast startup, less optimization
+		"-Xshare:on",              //? Use shared class data if available
+		"-Xss256k",                //? Lower stack memory per thread
+		"-Xms64m",                 //? Initial Heap
+		"-Xmx128m",                //? Max Heap (Must be < Pod Limit mem)
+		"-XX:-UsePerfData",
+		"-cp", classPath, className)
+	return coderunners.PipeCommand(runCmd)
+}
+
 func compileCode(filepath, outputDir string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -32,7 +32,13 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 func CheckSubmission(testCase models.TestCase, binaryFilePath string) (string, error) {
 	res, err := executeCode(binaryFilePath, testCase.Stdin)
 	return res, err
+}
 
+func PipeSubmission(binaryFilePath string) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+	runCmd := exec.CommandContext(ctx, binaryFilePath)
+	return coderunners.PipeCommand(runCmd)
 }
 
 func compileCode(filePath, outputPath string) error {
