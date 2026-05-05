@@ -121,7 +121,11 @@ func RunCode(upgrader *websocket.Upgrader) gin.HandlerFunc {
 			return
 		}
 		defer ws.Close()
+<<<<<<< HEAD
 
+=======
+		
+>>>>>>> 7d04973 (Allow opening of shell)
 		go checkAlive(ws)
 
 		var submission models.Submission
