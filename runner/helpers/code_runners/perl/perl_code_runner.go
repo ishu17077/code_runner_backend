@@ -37,6 +37,6 @@ func CheckSubmission(testcase models.TestCase, filePath string) (string, error) 
 func executeCode(filePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "per;", filePath)
+	runCmd := exec.CommandContext(ctx, "perl", filePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

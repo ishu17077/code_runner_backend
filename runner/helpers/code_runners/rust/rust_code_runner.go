@@ -55,7 +55,6 @@ func compileCode(filePath, outputPath string) error {
 func executeCode(binaryFilePath, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-
 	runCmd := exec.CommandContext(ctx, binaryFilePath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 
