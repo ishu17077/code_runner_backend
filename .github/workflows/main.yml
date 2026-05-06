@@ -1,0 +1,17 @@
+name: Scheduled Task
+
+on:
+  schedule:
+    # Runs "at 00:00 UTC every day"
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  cron_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run a Script
+        run: echo "Pinging https://supreme-space-fortnight-5xjwx9p9w67fp79p-30080.app.github.dev/" && curl -X POST "https://supreme-space-fortnight-5xjwx9p9w67fp79p-30080.app.github.dev/"
