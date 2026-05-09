@@ -76,13 +76,14 @@ func AnalyzeSubmission(submission models.Submission) (bool, []models.ExecResult,
 		return true, execResults, err
 
 	case language.Undefined:
-		return false, []models.ExecResult{}, fmt.Errorf("Invalid Language Provided")
+		return false, []models.ExecResult{}, fmt.Errorf("INVALID_LANGUAGE_PROVIDED")
 	}
 	return false, execResults, nil
 }
 
 func testCCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	outputPath, dirPath, err := c.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -97,12 +98,13 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
@@ -110,11 +112,12 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 
 	}
 
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testCppCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	outputPath, dirPath, err := cpp.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -129,23 +132,25 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testPythonCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	filePath, dirPath, err := python.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -160,18 +165,19 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testJavaCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
@@ -189,7 +195,6 @@ func testJavaCode(submission models.Submission, execResults *[]models.ExecResult
 	allPassed, result, err := java.CheckSubmission(payload, className, classPath)
 	if err != nil {
 		allPassed = false
-
 	}
 
 	*execResults = result.Results
@@ -199,6 +204,7 @@ func testJavaCode(submission models.Submission, execResults *[]models.ExecResult
 
 func testCSharpCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error
 	filePath, dirPath, err := c_sharp.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -213,22 +219,24 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testRustCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	outputPath, dirPath, err := rust.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -243,23 +251,25 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testGoCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	outputPath, dirPath, err := golang.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 	if err != nil {
@@ -274,23 +284,25 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, nil
+	return allPassed, gErr
 }
 
 func testPerlCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
 	var allPassed = true
+	var gErr error = nil
 	filePath, dirPath, err := perl.PreCompilationTask(submission)
 	defer cleanUp(dirPath)
 
@@ -307,18 +319,19 @@ func testPerlCode(submission models.Submission, execResults *[]models.ExecResult
 		execResult.Status.Exec_time_ms = uint16(execTime)
 		if !passed {
 			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
 			errors++
 			if errors > 2 {
-				return false, nil
+				return false, err
 			}
 		} else {
 			errors = 0
 		}
 	}
-	return allPassed, err
+	return allPassed, gErr
 }
 
 func getExecResult(testCase models.TestCase, output string, err error) (models.ExecResult, bool) {
@@ -327,7 +340,7 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 		Test_id:       testCase.Test_id,
 	}
 
-	if err != nil {
+	if err != nil && err != coderunners.TleError {
 		execResult.Status = &models.Status{
 			Message:         err.Error(),
 			Current_status:  currentstatus.FAILED.ToString(),
@@ -338,6 +351,16 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 			Completed_At:    time.Now(),
 		}
 		return execResult, false
+	} else {
+		execResult.Status = &models.Status{
+			Message:         err.Error(),
+			Current_status:  currentstatus.TIME_LIMIT_EXCEEDED.ToString(),
+			Stdout:          output,
+			Stdin:           testCase.Stdin,
+			Expected_output: testCase.ExpectedOutput,
+			Stderr:          "",
+			Completed_At:    time.Now(),
+		}
 	}
 	var status, testResErr = coderunners.CheckOutput(output, testCase.ExpectedOutput)
 	if testResErr != nil || status != currentstatus.SUCCESS {

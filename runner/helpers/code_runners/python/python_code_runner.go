@@ -33,15 +33,15 @@ func PipeSubmission(filePath string) error {
 	return coderunners.PipeCommand(runCmd)
 }
 
-func CheckSubmission(test models.TestCase, filePath string) (string, error) {
-	return executeCode(filePath, test.Stdin)
+func CheckSubmission(test models.TestCase, outputPath string) (string, error) {
+	return executeCode(outputPath, test.Stdin)
 }
 
 func compileCode(filePath string, outputPath string) error {
-	var ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	py_compile_script := fmt.Sprintf("\"import py_compile; print(py_compile.compile('%s', cfile='%s'))\"", filePath, outputPath)
-	cmd := exec.CommandContext(ctx, "python", "-c", py_compile_script)
+	py_compile_script := "import py_compile, sys; print(py_compile.compile(sys.argv[1], cfile=sys.argv[2]))"
+	cmd := exec.CommandContext(ctx, "python", "-c", py_compile_script, filePath, outputPath)
 	coderunners.SetPermissions(cmd)
 
 	if _, err := cmd.CombinedOutput(); err != nil {
@@ -50,9 +50,9 @@ func compileCode(filePath string, outputPath string) error {
 	return nil
 }
 
-func executeCode(filePath string, stdin string) (string, error) {
+func executeCode(outputPath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	runCmd := exec.CommandContext(ctx, "python", filePath)
+	runCmd := exec.CommandContext(ctx, "python", outputPath)
 	return coderunners.RunCommandWithInput(runCmd, stdin)
 }

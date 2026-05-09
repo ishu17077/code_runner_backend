@@ -1,11 +1,11 @@
 {
     "ID": "000000000000000000000000",
     "problem_id": "69",
-    "language": "Python",
+    "language": "C",
     "status": "",
-    "code": "if(int(input()) % 2) == 0:\n    print('Yes')\nelse:\n    print('No')\n",
+    "code": "#include <stdio.h>\nint main() {\nint res;\nscanf(\"%d\", &res);\nif (res % 2 == 0) {\n    printf(\"Yes\nYes\");\n} else {\n    printf(\"No\nNo\");\n}}",
     "submission_id": "",
-    "pipe": true,
+    "pipe": false,
     "tests": [
         {
             "ID": "000000000000000000000000",

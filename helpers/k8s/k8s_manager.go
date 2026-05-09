@@ -242,10 +242,10 @@ func extractJsonFromStdout(res string) models.Result {
 	matches := regExpMatch.FindStringSubmatch(res)
 	//? matches[0] is entire block and matches[1] is is content in b/w start and end
 	if len(matches) < 2 {
-		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Error consuming too much resources")
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Terminated execution for consuming too much resources")
 	}
+	
 	res = strings.TrimSpace(matches[1])
-
 	var result models.Result
 	jsonData, err := base64.StdEncoding.DecodeString(res)
 	if err != nil {

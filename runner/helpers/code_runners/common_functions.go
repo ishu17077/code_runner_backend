@@ -17,7 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-var TleError error = fmt.Errorf("Time Limit Exceeded")
+var TleError error = fmt.Errorf(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
 
 // var (
 // 	cGroupFile    *os.File

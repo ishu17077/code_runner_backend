@@ -69,7 +69,7 @@ func ExecuteSubmissionAndPipe(submission models.Submission) error {
 		return nil
 
 	case language.Undefined:
-		return fmt.Errorf("Invalid Language Provided")
+		return fmt.Errorf("INVALID_LANGUAGE_PROVIDED")
 	}
 	return nil
 }
