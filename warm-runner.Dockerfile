@@ -16,7 +16,7 @@ USER root
 
 WORKDIR /root/
 
-RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go perl dotnet10-sdk-aot
+RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip htop rustup go perl dotnet10-sdk-aot nodejs
 
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
 
@@ -64,6 +64,7 @@ RUN perl --version
 RUN python --version
 RUN dotnet --list-sdks
 RUN go version
+RUN node -v
 
 
 
