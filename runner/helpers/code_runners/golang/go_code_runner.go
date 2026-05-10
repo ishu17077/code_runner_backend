@@ -29,7 +29,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 
 }
 
-func CheckSubmission(testCase models.TestCase, binaryFilePath string) (string, error) {
+func ExecuteSubmission(testCase models.TestCase, binaryFilePath string) (string, error) {
 	res, err := executeCode(binaryFilePath, testCase.Stdin)
 	return res, err
 }

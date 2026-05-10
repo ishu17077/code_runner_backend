@@ -1,9 +1,9 @@
 {
     "ID": "000000000000000000000000",
     "problem_id": "69",
-    "language": "javascript",
+    "language": "js",
     "status": "",
-    "code": "#include <stdio.h>\nint main() {\nint res;\nscanf(\"%d\", &res);\nif (res % 2 == 0) {\n    printf(\"Yes\\nYes\");\n} else {\n    printf(\"No\\nNo\");\n}}",
+    "code": "const fs = require('fs');const input = fs.readFileSync(0, 'utf8').trim();const num = parseInt(input, 10);if (!isNaN(num)) {if (num % 2 === 0) {console.log(\"Yes\");} else {console.log(\"No\");}}",
     "submission_id": "",
     "pipe": false,
     "tests": [

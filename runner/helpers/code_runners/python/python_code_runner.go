@@ -33,7 +33,7 @@ func PipeSubmission(filePath string) error {
 	return coderunners.PipeCommand(runCmd)
 }
 
-func CheckSubmission(test models.TestCase, outputPath string) (string, error) {
+func ExecuteSubmission(test models.TestCase, outputPath string) (string, error) {
 	return executeCode(outputPath, test.Stdin)
 }
 

@@ -15,6 +15,7 @@ const (
 	Rust
 	Go
 	Perl
+	Javascript
 	Undefined
 )
 
@@ -36,6 +37,8 @@ func (language Language) ToString() string {
 		return "go"
 	case Perl:
 		return "perl"
+	case Javascript:
+		return "javascript"
 	default:
 		return "undefined"
 	}
@@ -59,6 +62,10 @@ func LanguageParser(s string) Language {
 		return Go
 	case "perl":
 		return Perl
+	case "javascript":
+		return Javascript
+	case "js":
+		return Javascript
 	default:
 		return Undefined
 	}

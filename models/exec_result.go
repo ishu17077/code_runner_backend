@@ -15,7 +15,7 @@ type Status struct {
 	Current_status  string    `json:"current_status"`
 	Stdout          string    `json:"stdout"`
 	Stderr          string    `json:"stderr"`
-	Exec_time_ms    uint16    `json:"exec_time_ms"`
+	Exec_time_ms    uint32    `json:"exec_time_ms"`
 	Stdin           string    `json:"stdin"`
 	Expected_output string    `json:"expected_output"`
 	Completed_At    time.Time `json:"completed_at"`

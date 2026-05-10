@@ -13,6 +13,7 @@ import (
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/cpp"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/golang"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/java"
+	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/javascript"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/perl"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/python"
 	"github.com/ishu17077/code_runner_backend/runner/helpers/code_runners/rust"
@@ -74,7 +75,12 @@ func AnalyzeSubmission(submission models.Submission) (bool, []models.ExecResult,
 			return false, execResults, err
 		}
 		return true, execResults, err
-
+	case language.Javascript:
+		res, err := testJavascriptCode(submission, &execResults)
+		if err != nil || !res {
+			return false, execResults, err
+		}
+		return true, execResults, err
 	case language.Undefined:
 		return false, []models.ExecResult{}, fmt.Errorf("INVALID_LANGUAGE_PROVIDED")
 	}
@@ -92,10 +98,10 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := c.CheckSubmission(testCase, outputPath)
+		output, err := c.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -126,10 +132,10 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := cpp.CheckSubmission(testCase, outputPath)
+		output, err := cpp.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -159,10 +165,10 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := python.CheckSubmission(testCase, filePath)
+		output, err := python.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -192,7 +198,7 @@ func testJavaCode(submission models.Submission, execResults *[]models.ExecResult
 		Exec_time:  2500,
 		Tests:      submission.Tests,
 	}
-	allPassed, result, err := java.CheckSubmission(payload, className, classPath)
+	allPassed, result, err := java.ExecuteSubmission(payload, className, classPath)
 	if err != nil {
 		allPassed = false
 	}
@@ -213,10 +219,10 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := c_sharp.CheckSubmission(testCase, filePath)
+		output, err := c_sharp.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -245,10 +251,10 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := rust.CheckSubmission(testCase, outputPath)
+		output, err := rust.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -278,10 +284,10 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := golang.CheckSubmission(testCase, outputPath)
+		output, err := golang.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -313,10 +319,43 @@ func testPerlCode(submission models.Submission, execResults *[]models.ExecResult
 	errors := 0
 	for _, testCase := range submission.Tests {
 		startTime := time.Now()
-		output, err := perl.CheckSubmission(testCase, filePath)
+		output, err := perl.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
 		execResult, passed := getExecResult(testCase, output, err)
-		execResult.Status.Exec_time_ms = uint16(execTime)
+		execResult.Status.Exec_time_ms = uint32(execTime)
+		if !passed {
+			allPassed = false
+			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
+		}
+		*execResults = append(*execResults, execResult)
+		if err != nil {
+			errors++
+			if errors > 2 {
+				return false, err
+			}
+		} else {
+			errors = 0
+		}
+	}
+	return allPassed, gErr
+}
+
+func testJavascriptCode(submission models.Submission, execResults *[]models.ExecResult) (bool, error) {
+	var allPassed = true
+	var gErr error = nil
+	filePath, dirPath, err := javascript.PreCompilationTask(submission)
+	defer cleanUp(dirPath)
+
+	if err != nil {
+		return false, fmt.Errorf("Error processing the file: %s", err.Error())
+	}
+	errors := 0
+	for _, testCase := range submission.Tests {
+		startTime := time.Now()
+		output, err := javascript.ExecuteSubmission(testCase, filePath)
+		execTime := time.Since(startTime).Milliseconds()
+		execResult, passed := getExecResult(testCase, output, err)
+		execResult.Status.Exec_time_ms = uint32(execTime)
 		if !passed {
 			allPassed = false
 			gErr = fmt.Errorf("%s", currentstatus.FAILED.ToString())
@@ -340,27 +379,30 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 		Test_id:       testCase.Test_id,
 	}
 
-	if err != nil && err != coderunners.TleError {
-		execResult.Status = &models.Status{
-			Message:         err.Error(),
-			Current_status:  currentstatus.FAILED.ToString(),
-			Stdout:          output,
-			Stdin:           testCase.Stdin,
-			Expected_output: testCase.ExpectedOutput,
-			Stderr:          err.Error(),
-			Completed_At:    time.Now(),
+	if err != nil {
+		if err != coderunners.TleError {
+			execResult.Status = &models.Status{
+				Message:         err.Error(),
+				Current_status:  currentstatus.FAILED.ToString(),
+				Stdout:          output,
+				Stdin:           testCase.Stdin,
+				Expected_output: testCase.ExpectedOutput,
+				Stderr:          err.Error(),
+				Completed_At:    time.Now(),
+			}
+			return execResult, false
+		} else {
+			execResult.Status = &models.Status{
+				Message:         err.Error(),
+				Current_status:  currentstatus.TIME_LIMIT_EXCEEDED.ToString(),
+				Stdout:          output,
+				Stdin:           testCase.Stdin,
+				Expected_output: testCase.ExpectedOutput,
+				Stderr:          "",
+				Completed_At:    time.Now(),
+			}
 		}
 		return execResult, false
-	} else {
-		execResult.Status = &models.Status{
-			Message:         err.Error(),
-			Current_status:  currentstatus.TIME_LIMIT_EXCEEDED.ToString(),
-			Stdout:          output,
-			Stdin:           testCase.Stdin,
-			Expected_output: testCase.ExpectedOutput,
-			Stderr:          "",
-			Completed_At:    time.Now(),
-		}
 	}
 	var status, testResErr = coderunners.CheckOutput(output, testCase.ExpectedOutput)
 	if testResErr != nil || status != currentstatus.SUCCESS {
@@ -390,8 +432,8 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 
 }
 
-func cleanUp(path string) {
+func cleanUp(dirPath string) {
 	go func(path string) {
 		coderunners.CleanUp(path)
-	}(path)
+	}(dirPath)
 }
