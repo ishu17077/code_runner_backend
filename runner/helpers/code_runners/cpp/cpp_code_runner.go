@@ -27,7 +27,7 @@ func PreCompilationTask(submission models.Submission) (string, string, error) {
 	return outputPath, dirPath, nil
 }
 
-func CheckSubmission(test models.TestCase, binaryFile string) (string, error) {
+func ExecuteSubmission(test models.TestCase, binaryFile string) (string, error) {
 	return executeCode(binaryFile, test.Stdin)
 
 }
@@ -42,7 +42,7 @@ func PipeSubmission(binaryFilePath string) error {
 func compileCode(filePath string, outputPath string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "g++", filePath, "-o", outputPath)
+	cmd := exec.CommandContext(ctx, "g++", "-O2", "-include", "bits/stdc++.h", filePath, "-o", outputPath)
 
 	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()

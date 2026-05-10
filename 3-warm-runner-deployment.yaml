@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: warm-runner
 spec:
-  replicas: 5 #! For now, if you want more performance, by all means go ahead
+  replicas: 10 #! For now, if you want more performance, by all means go ahead
   selector:
     matchLabels:
       app: warm-runner
@@ -19,7 +19,7 @@ spec:
         - name: warm-runner
           image: warm-runner
           imagePullPolicy: Never
-          command: ["sleep", "infinity"]
+          command: [ "sleep", "infinity" ]
           resources:
             requests:
               memory: "60Mi"
@@ -32,7 +32,7 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
-              drop: ["ALL"]
+              drop: [ "ALL" ]
               add:
                 - "SETUID" #? Requirements: switch to user 6969
                 - "SETGID" #? Requirements: switch to grp 7070

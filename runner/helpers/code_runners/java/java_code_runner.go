@@ -34,7 +34,7 @@ func PreCompilationTask(submission models.Submission) (string, string, string, e
 	return className, classPath, dirPath, nil
 }
 
-func CheckSubmission(payload models.JavaDriverPayload, className, classPath string) (bool, models.Result, error) {
+func ExecuteSubmission(payload models.JavaDriverPayload, className, classPath string) (bool, models.Result, error) {
 	var jsonPayload, err = json.Marshal(payload)
 
 	if err != nil {

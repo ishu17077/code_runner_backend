@@ -2,8 +2,10 @@ package coderunners
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-var TleError error = fmt.Errorf("Time Limit Exceeded")
+var TleError error = fmt.Errorf(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
 
 // var (
 // 	cGroupFile    *os.File
@@ -60,20 +62,31 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	}
 
 	var outputBuffer bytes.Buffer
+	var stdErrBuffer bytes.Buffer
 	runCmd.Stdout = &outputBuffer
+	runCmd.Stderr = &stdErrBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
 		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
 	}
 
 	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
+
 		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
 	}
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
+		if errors.Is(waitErr, context.DeadlineExceeded) {
+			return outputBuffer.String(), TleError
+		}
+
+		if exitErr, ok := waitErr.(*exec.ExitError); ok {
+			return outputBuffer.String(), fmt.Errorf("Runtime Error: %s", string(exitErr.Stderr))
+		}
+
 		//? If the command context timed out, time limit exceeded.
-		return "", TleError
+		return outputBuffer.String(), waitErr
 	}
 	return outputBuffer.String(), nil
 }

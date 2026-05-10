@@ -86,6 +86,8 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 }
 
 func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) error {
+	var ctx, cancel = context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
 	ws.WriteMessage(websocket.TextMessage, []byte("Preparing a terminal window"))
 	executorPod, err := k.findRandomWarmPod()
 
@@ -158,7 +160,10 @@ func (k *K8sManager) RunCode(ws *websocket.Conn, submission models.Submission) e
 	case <-session.DoneChan:
 		fmt.Println("RunCode aborted due to WebSocket drop.")
 		return fmt.Errorf("client disconnected")
+	case <-ctx.Done():
+		return fmt.Errorf("Deadline Exceeded for execution(2 minutes).")
 	}
+
 }
 
 func (k *K8sManager) findRandomWarmPod() (string, error) {
@@ -242,10 +247,10 @@ func extractJsonFromStdout(res string) models.Result {
 	matches := regExpMatch.FindStringSubmatch(res)
 	//? matches[0] is entire block and matches[1] is is content in b/w start and end
 	if len(matches) < 2 {
-		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Error consuming too much resources")
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Terminated execution for consuming too much resources")
 	}
-	res = strings.TrimSpace(matches[1])
 
+	res = strings.TrimSpace(matches[1])
 	var result models.Result
 	jsonData, err := base64.StdEncoding.DecodeString(res)
 	if err != nil {
