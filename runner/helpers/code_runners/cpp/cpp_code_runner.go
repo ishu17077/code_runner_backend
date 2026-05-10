@@ -42,7 +42,7 @@ func PipeSubmission(binaryFilePath string) error {
 func compileCode(filePath string, outputPath string) error {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "g++", filePath, "-o", outputPath)
+	cmd := exec.CommandContext(ctx, "g++", "-O2", "-include", "bits/stdc++.h", filePath, "-o", outputPath)
 
 	coderunners.SetPermissions(cmd)
 	res, err := cmd.CombinedOutput()

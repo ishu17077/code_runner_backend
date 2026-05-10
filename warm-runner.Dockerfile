@@ -20,6 +20,12 @@ RUN apk update && apk add --no-cache curl build-base openjdk21 python3 py3-pip h
 
 RUN addgroup executorgrp --gid 7070 && adduser executor --uid 6969 executorgrp -D -S
 
+#? C/C++ cache
+RUN echo "#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <math.h>\n#include <stdbool.h>\n#include <ctype.h>\n" > /usr/include/code_runner_backend_c_std.h && \
+    gcc -O2 -x c-header /usr/include/code_runner_backend_c_std.h -o /usr/include/code_runner_backend_c_std.h.gch
+RUN CXX_HEADER=$(find /usr/include -name "stdc++.h" | grep "bits/stdc++.h" | head -n 1) && \
+    g++ -O2 -x c++-header $CXX_HEADER -o ${CXX_HEADER}.gch
+
 #? Rust
 ENV RUST_HOME="/opt/Rust"
 ENV RUSTUP_HOME="$RUST_HOME/.rustup"
