@@ -20,6 +20,7 @@ import (
 )
 
 var TleError error = fmt.Errorf("%s", currentstatus.TIME_LIMIT_EXCEEDED.ToString())
+var RuntimeError error = fmt.Errorf("%s", currentstatus.RUNTIME_ERROR.ToString())
 
 // var (
 // 	cGroupFile    *os.File

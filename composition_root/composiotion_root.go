@@ -28,7 +28,7 @@ func init() {
 	}
 
 	upgrader = &websocket.Upgrader{
-		ReadBufferSize: 1024,
+		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 
@@ -47,7 +47,7 @@ func Stop() error {
 
 func routesDefine(router *gin.Engine) {
 	submissionRoutes := router.Group("/submission")
-	
+
 	adminRoutes := router.Group("/admin")
 
 	routes.SubmissionRoutes(submissionRoutes, upgrader)
