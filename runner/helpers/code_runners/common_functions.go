@@ -82,8 +82,8 @@ func RunCommandWithInput(runCmd *exec.Cmd, ctx context.Context, stdin string) (s
 			return outputBuffer.String(), TleError
 		}
 
-		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			return outputBuffer.String(), fmt.Errorf("Runtime Error: %s", string(exitErr.Error()))
+		if _, ok := waitErr.(*exec.ExitError); ok {
+			return outputBuffer.String(), RuntimeError
 		}
 
 		//? If the command context timed out, time limit exceeded.

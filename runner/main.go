@@ -60,7 +60,7 @@ func main() {
 	if allPassed {
 		result.Status = "SUCCESS"
 	} else {
-		result.Status = "FAILED"
+		result.Status = err.Error()
 	}
 
 	if err != nil {
