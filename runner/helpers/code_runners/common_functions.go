@@ -19,7 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-var TleError error = fmt.Errorf(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
+var TleError error = fmt.Errorf("%s", currentstatus.TIME_LIMIT_EXCEEDED.ToString())
 
 // var (
 // 	cGroupFile    *os.File
@@ -53,7 +53,7 @@ func SaveFile(filePath string, dirPath string, code string) error {
 	return nil
 }
 
-func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
+func RunCommandWithInput(runCmd *exec.Cmd, ctx context.Context, stdin string) (string, error) {
 	SetPermissions(runCmd)
 
 	stdinPipe, pipeErr := runCmd.StdinPipe()
@@ -77,12 +77,12 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		if errors.Is(waitErr, context.DeadlineExceeded) {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return outputBuffer.String(), TleError
 		}
 
 		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			return outputBuffer.String(), fmt.Errorf("Runtime Error: %s", string(exitErr.Stderr))
+			return outputBuffer.String(), fmt.Errorf("Runtime Error: %s", string(exitErr.Error()))
 		}
 
 		//? If the command context timed out, time limit exceeded.

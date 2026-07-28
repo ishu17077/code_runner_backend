@@ -100,5 +100,5 @@ func executeCode(classPath, className, stdin string) (string, error) {
 		"-XX:-UsePerfData",
 		"-cp", classPath, className)
 
-	return coderunners.RunCommandWithInput(runCmd, stdin)
+	return coderunners.RunCommandWithInput(runCmd, ctx, stdin)
 }
