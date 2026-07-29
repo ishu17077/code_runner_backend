@@ -61,6 +61,8 @@ func main() {
 		result.Status = "SUCCESS"
 	} else {
 		result.Status = err.Error()
+		selectAppropriateErrorMessage(&result)
+
 	}
 
 	if err != nil {
@@ -76,6 +78,25 @@ func main() {
 	// 	result.Status = currentstatus.FAILED.ToString()
 	// }
 	// printFinalResult(result)
+}
+
+func selectAppropriateErrorMessage(result *models.Result) {
+	switch result.Status {
+	case currentstatus.RESOURCE_LIMIT_EXCEEDED.ToString():
+		result.Error = "Program consumed too much resources, therefore was terminated."
+	case currentstatus.INTERNAL_ERROR.ToString():
+		result.Error = "An Internal error has occured during execution, please try again"
+	case currentstatus.RUNTIME_ERROR.ToString():
+		result.Error = "A runtime error has occured during execution of program"
+	case currentstatus.TIME_LIMIT_EXCEEDED.ToString():
+		result.Error = "The program exceeded its intended run time"
+	case currentstatus.FAILED.ToString():
+		result.Error = "Some testcases failed to display the actual result"
+	case currentstatus.SUCCESS.ToString():
+		result.Error = ""
+	default:
+		result.Error = "An unknown error occured"
+	}
 }
 
 func printFinalResult(res models.Result) {
