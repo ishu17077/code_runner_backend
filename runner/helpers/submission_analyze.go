@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -380,8 +381,7 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 	}
 
 	if err != nil {
-		switch err {
-		case coderunners.TleError:
+		if errors.Is(err, coderunners.TleError) {
 			execResult.Status = &models.Status{
 				Message:         "Time limit exceeded for the current execution",
 				Current_status:  currentstatus.TIME_LIMIT_EXCEEDED.ToString(),
@@ -392,29 +392,30 @@ func getExecResult(testCase models.TestCase, output string, err error) (models.E
 				Completed_At:    time.Now(),
 			}
 			return execResult, currentstatus.TIME_LIMIT_EXCEEDED
-		case coderunners.RuntimeError:
-			execResult.Status = &models.Status{
-				Message:         fmt.Sprintf("Runtime error: %s", err.Error()),
-				Current_status:  currentstatus.RUNTIME_ERROR.ToString(),
-				Stdout:          output,
-				Stdin:           testCase.Stdin,
-				Expected_output: testCase.ExpectedOutput,
-				Stderr:          "",
-				Completed_At:    time.Now(),
-			}
-			return execResult, currentstatus.RUNTIME_ERROR
-		default:
+		} else if errors.Is(err, coderunners.RuntimeError) {
 			execResult.Status = &models.Status{
 				Message:         err.Error(),
-				Current_status:  currentstatus.FAILED.ToString(),
+				Current_status:  currentstatus.RUNTIME_ERROR.ToString(),
 				Stdout:          output,
 				Stdin:           testCase.Stdin,
 				Expected_output: testCase.ExpectedOutput,
 				Stderr:          err.Error(),
 				Completed_At:    time.Now(),
 			}
+			return execResult, currentstatus.RUNTIME_ERROR
+		} else if errors.Is(err, coderunners.InternalError) {
+			execResult.Status = &models.Status{
+				Message:         err.Error(),
+				Current_status:  currentstatus.INTERNAL_ERROR.ToString(),
+				Stdout:          output,
+				Stdin:           testCase.Stdin,
+				Expected_output: testCase.ExpectedOutput,
+				Stderr:          err.Error(),
+				Completed_At:    time.Now(),
+			}
+			return execResult, currentstatus.INTERNAL_ERROR
 		}
-		return execResult, currentstatus.INTERNAL_ERROR
+
 	}
 	var status, testResErr = coderunners.CheckOutput(output, testCase.ExpectedOutput)
 	if testResErr != nil || status != currentstatus.SUCCESS {
