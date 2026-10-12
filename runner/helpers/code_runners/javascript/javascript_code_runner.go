@@ -36,5 +36,5 @@ func executeCode(filePath, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "node", filePath)
-	return coderunners.RunCommandWithInput(runCmd, stdin)
+	return coderunners.RunCommandWithInput(runCmd, ctx, stdin)
 }

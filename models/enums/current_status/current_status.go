@@ -7,9 +7,9 @@ type CurrentStatus int
 const (
 	SUCCESS CurrentStatus = iota
 	FAILED
-	PENDING
 	TIME_LIMIT_EXCEEDED
 	RESOURCE_LIMIT_EXCEEDED
+	RUNTIME_ERROR
 	INTERNAL_ERROR
 )
 
@@ -19,14 +19,14 @@ func (currStatus CurrentStatus) ToString() string {
 		return "SUCCESS"
 	case FAILED:
 		return "FAILED"
-	case PENDING:
-		return "PENDING"
 	case TIME_LIMIT_EXCEEDED:
 		return "TIME_LIMIT_EXCEEDED"
 	case RESOURCE_LIMIT_EXCEEDED:
 		return "RESOURCE_LIMIT_EXCEEDED"
 	case INTERNAL_ERROR:
 		return "INTERNAL_ERROR"
+	case RUNTIME_ERROR:
+		return "RUNTIME_ERROR"
 	default:
 		return "FAILED"
 	}
@@ -36,8 +36,6 @@ func CurrentStatusParser(currentStatus string) CurrentStatus {
 	switch strings.ToUpper(currentStatus) {
 	case "SUCCESS":
 		return SUCCESS
-	case "PENDING":
-		return PENDING
 	case "FAILED":
 		return FAILED
 	case "TIME_LIMIT_EXCEEDED":
@@ -46,6 +44,8 @@ func CurrentStatusParser(currentStatus string) CurrentStatus {
 		return RESOURCE_LIMIT_EXCEEDED
 	case "INTERNAL_ERROR":
 		return INTERNAL_ERROR
+	case "RUNTIME_ERROR":
+		return RUNTIME_ERROR
 	default:
 		return FAILED
 	}

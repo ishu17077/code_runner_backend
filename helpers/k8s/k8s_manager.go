@@ -80,7 +80,7 @@ func (k *K8sManager) RunCodeTests(submission models.Submission) (models.Result, 
 		if errors.Is(execErr, context.DeadlineExceeded) {
 			return emptyResult(currentstatus.TIME_LIMIT_EXCEEDED, "Time Limit Exceeded"), fmt.Errorf("Unable to complete execution")
 		}
-		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Memory Limit Exceeded"), fmt.Errorf("execution failed: %v | stderr: %s", execErr, stderr)
+		return emptyResult(currentstatus.RESOURCE_LIMIT_EXCEEDED, "Resource limit exceeded for the given program"), fmt.Errorf("execution failed: %v | stderr: %s", execErr, stderr)
 	}
 	return extractJsonFromStdout(output), nil
 }

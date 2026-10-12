@@ -2,6 +2,7 @@ package pipe
 
 import (
 	"bytes"
+
 	"github.com/gorilla/websocket"
 	"k8s.io/client-go/tools/remotecommand"
 )

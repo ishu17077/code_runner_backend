@@ -1,264 +1,258 @@
 # Code Runner Backend
 
+Backend service for compiling and executing submitted code inside isolated containers.
+
 ## Demo
 
-[Frontend Project Demo](https://github.com/Subhojit534/Code_Arena/)
+- Frontend project demo: https://github.com/Subhojit534/Code_Arena/
+- Demo video: https://github.com/user-attachments/assets/e212aa2a-4bcb-4693-8fb3-34c3595380f4
 
-[NewNewRecoding.webm](https://github.com/user-attachments/assets/e212aa2a-4bcb-4693-8fb3-34c3595380f4)
+## Prerequisites
 
-## Ensure you have Docker installed and run it in Docker
+- Docker (required)
+- Kubernetes runtime (MicroK8s recommended; Minikube/KIND supported as legacy flow)
 
-**Note:** This project must run inside Docker because it uses specific users and permissions.
+> [!IMPORTANT]
+> This project is designed to run in Docker/Kubernetes because it depends on specific users and permissions.
 
-### Clone the repo
+## Clone the repository
 
 ```bash
 git clone https://github.com/ishu17077/code_runner_backend
 cd code_runner_backend
 ```
 
-> API Calls
+## API collection
 
-[Postman collection](https://m1racles.postman.co/workspace/SCCSE~18de115a-fe99-43e4-8681-bfccf985ac14/collection/40284511-abc6ba02-0e7d-48cf-9fb2-a3b113eb6fa1?action=share&creator=40284511)
+- Postman collection: https://m1racles.postman.co/workspace/SCCSE~18de115a-fe99-43e4-8681-bfccf985ac14/collection/40284511-abc6ba02-0e7d-48cf-9fb2-a3b113eb6fa1?action=share&creator=40284511
+- Sample collection file: [code-runner.postman-collection.json.sample](./code-runner.postman-collection.json.sample)
 
-## The Kubernetes Method
+---
 
-### To use with more production grade microk8s instead of minikube(New New Method)
+## Kubernetes Setup (Recommended: MicroK8s)
 
-> Install microk8s
+### 1) Install MicroK8s
 
 ```bash
 sudo apt install snapd
 sudo snap install microk8s --classic
 ```
 
-**Note:** For Fedora use sudo dnf install snapd instead of first command
-
-> Build the image and output it using docker
->> 1
+For Fedora, install `snapd` with:
 
 ```bash
-docker build -f ./code-runner.Dockerfile . -t code-runner;
-docker build -f ./warm-runner.Dockerfile . -t warm-runner;
+sudo dnf install snapd
 ```
 
->> 2
+### 2) Build Docker images
 
 ```bash
-docker save -o ./code-runner.tar code-runner;
-docker save -o ./warm-runner.tar warm-runner;
+docker build -f ./code-runner.Dockerfile . -t code-runner
+docker build -f ./warm-runner.Dockerfile . -t warm-runner
 ```
 
-### Secret Config
+### 3) Export images
 
-**Note:** For new method, use this:
+```bash
+docker save -o ./code-runner.tar code-runner
+docker save -o ./warm-runner.tar warm-runner
+```
 
->> First create 1-code-runner-secret.yaml from 1-code-runner-secret.yaml.sample provided. (The values must be base64 encoded in the params)
+### 4) Configure secrets
+
+Create a secret file from the sample:
 
 ```bash
 cp ./1-code-runner-secret.yaml.sample ./1-code-runner-secret.yaml
 ```
 
-Change the values of 1-code-runner-secret.yaml accordingly
+Then update values in `1-code-runner-secret.yaml` (values must be base64 encoded).
 
-> Import image in microk8s
+### 5) Import images into MicroK8s
 
 ```bash
 microk8s images import ./code-runner.tar
 microk8s images import ./warm-runner.tar
 ```
 
-> Check if image is present
+Verify import:
 
 ```bash
 microk8s ctr images ls | grep code-runner
-microk8s ctr images ls | grep code-runner
+microk8s ctr images ls | grep warm-runner
 ```
 
-If present all good, else revert to building the image again and importing it.
+### 6) Apply configuration
 
-**Note:** You must create these files from template mentioned [here](#secret-config)</a>
-
-> Now applying kubernetes config and secrets(Optional)
+Optional: apply only secret/config first:
 
 ```bash
 microk8s kubectl apply -f ./1-code-runner-secret.yaml
-microk8s kubectl apply -f ./2-code-runner.config.yaml
+microk8s kubectl apply -f ./2-code-runner-config.yaml
 ```
 
-> Deploy Everything(One shot)
+Apply everything:
 
 ```bash
 microk8s kubectl apply -f .
 ```
 
-> Check the deployment
+Check deployment:
 
 ```bash
 microk8s kubectl get pods
 ```
 
-Choose any pod and describe
-
-```bash
-microk8s kubectl get code-runner-*
-```
-
-**Note:** * is any pod id you found
-
-#### Enable dashboard(optional)
+### 7) (Optional) Dashboard
 
 ```bash
 microk8s enable dashboard
 microk8s dashboard-proxy
 ```
 
-**Note:** You can use the token provided by dashboard-proxy in the web address that will be automatically opened
+Use the token printed by `dashboard-proxy` to sign in.
 
-## To call the API
+---
 
-### Converting the programs to base64
+## Calling the API
 
-You need to convert your entire code to base64 encoding before passing down to api
+### Encode source code to base64
 
-[Base64 encode/decode here](https://www.base64encode.org/)
+The `code` field must contain base64-encoded source code.
 
-Below is an example of base64 encoding
+Online tool: https://www.base64encode.org/
+
+Example encoded payload:
 
 ```base64
 I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==
 ```
 
-Make sure you select encode option at the top for encoding
+> [!NOTE]
+> - For Java, use `class Solution`.
+> - For Go, include `package main` at the top.
+
+### Endpoints
+
+- `POST {host_url}/submission/test/private`
+- `POST {host_url}/submission/test/public`
+- `GET  {host_url}/submission/run` (WebSocket upgrade)
+
+Replace `{host_url}` with your service address.
 
 > [!NOTE]
-> Please make sure you use class Solution for java programs, and don't forget to add 'package main' at the top of golang code.
-<br>
-> JSON Payload to call the api
+> `/submission/test/public` supports up to 10 tests in one request.
 
-**Note:** You can either use postman or curl
-
-Request Type: POST
-
->> {host_url}/submission/test/private
->>
->> {host_url}/submission/test/public
-
-Replace {host_url} with actual url whether that be localhost or somewhere else.
-
-**Note:** /submission/test/public endpoint cannot have more than 3 tests defined
+### Request body example
 
 ```json
 {
-    "problem_id": "69",
-    "language": "C",
-    "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==",
-    "tests": [
+  "problem_id": "69",
+  "language": "C",
+  "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIsICZyZXMpOwogICAgaWYgKHJlcyAlIDIgPT0gMCkgewogICAgICAgIHByaW50ZigiWWVzXG5ZZXMiKTsKICAgIH0gZWxzZSB7CiAgICAgICAgcHJpbnRmKCJOb1xuTm8iKTsKICAgIH0KfQ==",
+  "tests": [
     {
-      "problem_id":     "69",
-      "is_public":      true,
-      "stdin":          "12\n",
-      "expected_output": "Yes\nYes",
-      "test_id":        "1"
+      "problem_id": "69",
+      "is_public": true,
+      "stdin": "12\\n",
+      "expected_output": "Yes\\nYes",
+      "test_id": "1"
     }
   ]
 }
 ```
 
-### Postman
-
-> Install Postman from [here](https://www.postman.com/downloads/)
-
-### Curl
+### Curl example
 
 ```bash
-curl -v -X POST "127.0.0.1:300080/submission/test/private" -H "Content-Type: application/json" -H "Connection: close" --data @./examples/stress_payload.json
+curl -v -X POST "127.0.0.1:30080/submission/test/private" \
+  -H "Content-Type: application/json" \
+  -H "Connection: close" \
+  --data @./examples/stress_payload.json
 ```
 
-**Note:** You can pipe the above command through jq to pretty print json, in simple terms add " | jq", at the end of the above code
+You can append `| jq` to pretty-print the response.
 
 > [!NOTE]
-> This api will be accessible through 30080 port, as it is configured to use NodePort as load balancer
+> Service is exposed via NodePort `30080` in the provided Kubernetes manifests.
 
-> For more paraller processing go to file 3-warm-runner-deployment.yaml and change 'replicas' in accordance with your computer specification.
+### WebSocket submission pipe (interactive run)
 
-### The minikube method(Old Method)
+Use this endpoint when you want interactive stdin/stdout piping:
 
-> Install Kubernetes (kubectl to create deployments preferrably through docker desktop)
+- Endpoint: `ws://{host_url}/submission/run`
+- Route implementation: `/submission/run` (WebSocket upgrade)
+- First client message must be a JSON `Submission` payload with base64-encoded `code`
+- After the first message, send raw stdin chunks as WebSocket text frames
+- Program stdout/stderr is streamed back as WebSocket text frames
 
-Install kubernetes and kubectl & docker desktop and click on kubernetes and create kubernetes cluster
+Server-side behavior from current implementation:
 
-> Install Containerd Runtime
-You can either use kind or minikube, minikube is preferrable because it has been tested.
->> Install Minikube
-Install it on your system using [Minikube Tutorial](https://minikube.sigs.k8s.io/docs/start/).
->> Install KIND(Kunbernetes In Docker)
-Install it on your system using [KIND Tutorial](https://kind.sigs.k8s.io/docs/user/quick-start/).
+- Sends an initial message: `Preparing a terminal window`
+- Sends WebSocket ping control frames every 30 seconds to keep the connection alive
+- Execution timeout is 2 minutes for a single interactive run
 
-> [!WARNING]
-> With KIND, you are on your own, it has not been tested
+Minimal initial payload example:
+
+```json
+{
+  "problem_id": "69",
+  "language": "C",
+  "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgeyBpbnQgeDsgc2NhbmYoIiVkIiwgJngpOyBwcmludGYoIiVkXG4iLCB4KjIpOyB9",
+  "tests": []
+}
+```
+
+### Scaling warm runners
+
+For higher parallel processing, increase `replicas` in:
+
+- `3-warm-runner-deployment.yaml`
+
+---
+
+## Legacy Setup (Minikube / KIND)
+
+Use this only if you are not using the MicroK8s flow.
+
+### Install and start cluster
+
+- Minikube guide: https://minikube.sigs.k8s.io/docs/start/
+- KIND guide: https://kind.sigs.k8s.io/docs/user/quick-start/
+
+Create cluster with KIND:
 
 ```bash
 kind create cluster
 ```
 
-> Using Minikube
+Or start Minikube:
 
 ```bash
 minikube start
 ```
 
-> Build Docker image
+### Build and load image
 
 ```bash
-docker build -t code_runner . -o code_runner.tar
+docker build -f ./code-runner.Dockerfile . -t code-runner
+docker build -f ./warm-runner.Dockerfile . -t warm-runner
+minikube image load code-runner:latest
+minikube image load warm-runner:latest
 ```
 
-> Load image to Minikube
-
-```bash
-minikube load ./code_runner.tar
-```
-
-<!-- > Old Method of creating env
->> Create Environment Variable Map in kubernetes(Old Method)
-
-Create .env file in /worker-node directory
-
-```bash
-cp ./.env.sample ./.env 
-```
-
-Now provide values into .env
-
->> Create a configmap in kubernetes from .env file (Old Method)
-
-```bash
-kubectl create configmap env --from-file ./.env
-``` -->
-
-> Now apply the kubernetes conf
+### Deploy and access service
 
 ```bash
 kubectl apply -f .
-```
-
-> Now we need to get a port exposed from minikube
-
-```bash
 minikube service code-runner
 ```
 
-**Note:** The kubernetes is set up with load balancer with different pod, so it will be accessible via 30080 port instead of 8060 with docker-desktop kubernetes, but with minikube it would be running on port provided by above command
-
-> Access minikube dashboard
+### Minikube dashboard
 
 ```bash
 minikube dashboard
 ```
 
 > [!TIP]
-> Use the microk8s method to avoid incompabilities.
-
-> [!NOTE]
-> The postman collection sample is attached with this program [here](code-runner.postman-collection.json.sample).
+> Prefer the MicroK8s method to avoid compatibility issues.

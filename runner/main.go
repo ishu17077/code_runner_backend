@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 	currentstatus "github.com/ishu17077/code_runner_backend/models/enums/current_status"
 	"github.com/ishu17077/code_runner_backend/models/enums/language"
 	"github.com/ishu17077/code_runner_backend/runner/helpers"
+	coderunners "github.com/ishu17077/code_runner_backend/runner/helpers/code_runners"
 )
 
 func main() {
@@ -59,12 +61,11 @@ func main() {
 	}
 	if allPassed {
 		result.Status = "SUCCESS"
-	} else {
-		result.Status = "FAILED"
 	}
 
 	if err != nil {
 		result.Error = err.Error()
+		selectAppropriateErrorMessage(&result, err)
 	}
 	result.Problem_id = submission.Problem_id
 	printFinalResult(result)
@@ -76,6 +77,26 @@ func main() {
 	// 	result.Status = currentstatus.FAILED.ToString()
 	// }
 	// printFinalResult(result)
+}
+
+func selectAppropriateErrorMessage(result *models.Result, err error) {
+	switch {
+	case errors.Is(err, coderunners.InternalError):
+		result.Status = currentstatus.INTERNAL_ERROR.ToString()
+	case errors.Is(err, coderunners.RuntimeError):
+		result.Status = currentstatus.RUNTIME_ERROR.ToString()
+	case errors.Is(err, coderunners.TleError):
+		result.Status = currentstatus.TIME_LIMIT_EXCEEDED.ToString()
+		result.Error = "The program exceeded its intended run time"
+	case errors.Is(err, coderunners.FailedError):
+		result.Status = currentstatus.FAILED.ToString()
+		result.Error = "Some testcases failed to display the actual result"
+	case err == nil:
+		result.Error = ""
+	//! RESOURCE_LIMIT_EXCEEDED ERROR WILL ONLYH OCCUR AT K8s level immediately dying
+	default:
+		result.Status = currentstatus.INTERNAL_ERROR.ToString()
+	}
 }
 
 func printFinalResult(res models.Result) {
@@ -103,7 +124,7 @@ func printInternalError(msg string, err error) {
 			{
 				Status: &models.Status{
 					Message:        fullMsg,
-					Current_status: currentstatus.FAILED.ToString(),
+					Current_status: currentstatus.INTERNAL_ERROR.ToString(),
 					Stdout:         "",
 					Stderr:         "",
 					Completed_At:   time.Now(),

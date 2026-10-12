@@ -38,5 +38,5 @@ func executeCode(filePath string, stdin string) (string, error) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	runCmd := exec.CommandContext(ctx, "perl", filePath)
-	return coderunners.RunCommandWithInput(runCmd, stdin)
+	return coderunners.RunCommandWithInput(runCmd, ctx, stdin)
 }

@@ -19,7 +19,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-var TleError error = fmt.Errorf(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
+var TleError error = errors.New(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
+var RuntimeError error = errors.New(currentstatus.RUNTIME_ERROR.ToString())
+var InternalError error = errors.New(currentstatus.INTERNAL_ERROR.ToString())
+var FailedError error = errors.New(currentstatus.FAILED.ToString())
 
 // var (
 // 	cGroupFile    *os.File
@@ -53,7 +56,7 @@ func SaveFile(filePath string, dirPath string, code string) error {
 	return nil
 }
 
-func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
+func RunCommandWithInput(runCmd *exec.Cmd, ctx context.Context, stdin string) (string, error) {
 	SetPermissions(runCmd)
 
 	stdinPipe, pipeErr := runCmd.StdinPipe()
@@ -67,25 +70,25 @@ func RunCommandWithInput(runCmd *exec.Cmd, stdin string) (string, error) {
 	runCmd.Stderr = &stdErrBuffer
 
 	if startErr := runCmd.Start(); startErr != nil {
-		return "", fmt.Errorf("Unable to start the program %s", startErr.Error())
+		return "", fmt.Errorf("%w: Unable to start the program %s", InternalError, startErr.Error())
 	}
 
 	if _, err := io.WriteString(stdinPipe, stdin); err != nil {
 
-		return "", fmt.Errorf("Error writing to stdin: %s", err.Error())
+		return "", fmt.Errorf("%w: Error writing to stdin: %s", InternalError, err.Error())
 	}
 	stdinPipe.Close()
 
 	if waitErr := runCmd.Wait(); waitErr != nil {
-		if errors.Is(waitErr, context.DeadlineExceeded) {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return outputBuffer.String(), TleError
 		}
 
-		if exitErr, ok := waitErr.(*exec.ExitError); ok {
-			return outputBuffer.String(), fmt.Errorf("Runtime Error: %s", string(exitErr.Stderr))
+		if _, ok := waitErr.(*exec.ExitError); ok {
+			return outputBuffer.String(), fmt.Errorf("%w: %s", RuntimeError, waitErr.Error())
 		}
 
-		//? If the command context timed out, time limit exceeded.
+		//// If the command context timed out, time limit exceeded.
 		return outputBuffer.String(), waitErr
 	}
 	return outputBuffer.String(), nil
@@ -214,13 +217,13 @@ func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.Curr
 	}
 	//! Impossible test pass scenario
 	if len(outputLines) < len(expectedLines) {
-		return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+		return currentstatus.FAILED, fmt.Errorf("%w: Expected output: %s. Actual output: %s", FailedError, expectedOutput, actualOutput)
 	}
 
 	start := len(outputLines) - len(expectedLines)
 	for i, expectedLine := range expectedLines {
 		if strings.TrimSpace(expectedLine) != strings.TrimSpace(outputLines[start+i]) {
-			return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+			return currentstatus.FAILED, fmt.Errorf("%w: Expected output: %s. Actual output: %s", FailedError, expectedOutput, actualOutput)
 		}
 	}
 	return currentstatus.SUCCESS, nil

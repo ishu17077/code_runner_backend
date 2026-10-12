@@ -8,7 +8,6 @@ import (
 )
 
 type Submission struct {
-	ID          string       `json:"id"`
 	Problem_id  string       `json:"problem_id"`
 	Language    string       `json:"language" binding:"required" validate:"required,min=3,max=10"`
 	Code        string       `json:"code" binding:"required" validate:"required,min=3,max=7000000"`
