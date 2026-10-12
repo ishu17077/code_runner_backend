@@ -22,6 +22,7 @@ import (
 var TleError error = errors.New(currentstatus.TIME_LIMIT_EXCEEDED.ToString())
 var RuntimeError error = errors.New(currentstatus.RUNTIME_ERROR.ToString())
 var InternalError error = errors.New(currentstatus.INTERNAL_ERROR.ToString())
+var FailedError error = errors.New(currentstatus.FAILED.ToString())
 
 // var (
 // 	cGroupFile    *os.File
@@ -216,13 +217,13 @@ func CheckOutput(actualOutput string, expectedOutput string) (currentstatus.Curr
 	}
 	//! Impossible test pass scenario
 	if len(outputLines) < len(expectedLines) {
-		return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+		return currentstatus.FAILED, fmt.Errorf("%w: Expected output: %s. Actual output: %s", FailedError, expectedOutput, actualOutput)
 	}
 
 	start := len(outputLines) - len(expectedLines)
 	for i, expectedLine := range expectedLines {
 		if strings.TrimSpace(expectedLine) != strings.TrimSpace(outputLines[start+i]) {
-			return currentstatus.FAILED, fmt.Errorf("FAILED: Expected output: %s. Actual output: %s", expectedOutput, actualOutput)
+			return currentstatus.FAILED, fmt.Errorf("%w: Expected output: %s. Actual output: %s", FailedError, expectedOutput, actualOutput)
 		}
 	}
 	return currentstatus.SUCCESS, nil

@@ -88,7 +88,7 @@ func selectAppropriateErrorMessage(result *models.Result, err error) {
 	case errors.Is(err, coderunners.TleError):
 		result.Status = currentstatus.TIME_LIMIT_EXCEEDED.ToString()
 		result.Error = "The program exceeded its intended run time"
-	case err.Error() == currentstatus.FAILED.ToString():
+	case errors.Is(err, coderunners.FailedError):
 		result.Status = currentstatus.FAILED.ToString()
 		result.Error = "Some testcases failed to display the actual result"
 	case err == nil:
@@ -124,7 +124,7 @@ func printInternalError(msg string, err error) {
 			{
 				Status: &models.Status{
 					Message:        fullMsg,
-					Current_status: currentstatus.FAILED.ToString(),
+					Current_status: currentstatus.INTERNAL_ERROR.ToString(),
 					Stdout:         "",
 					Stderr:         "",
 					Completed_At:   time.Now(),

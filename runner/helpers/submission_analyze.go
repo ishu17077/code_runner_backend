@@ -101,11 +101,15 @@ func testCCode(submission models.Submission, execResults *[]models.ExecResult) (
 		startTime := time.Now()
 		output, err := c.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
@@ -135,11 +139,15 @@ func testCppCode(submission models.Submission, execResults *[]models.ExecResult)
 		startTime := time.Now()
 		output, err := cpp.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 
@@ -168,11 +176,15 @@ func testPythonCode(submission models.Submission, execResults *[]models.ExecResu
 		startTime := time.Now()
 		output, err := python.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
@@ -222,11 +234,15 @@ func testCSharpCode(submission models.Submission, execResults *[]models.ExecResu
 		startTime := time.Now()
 		output, err := c_sharp.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
@@ -254,11 +270,15 @@ func testRustCode(submission models.Submission, execResults *[]models.ExecResult
 		startTime := time.Now()
 		output, err := rust.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 
@@ -287,11 +307,15 @@ func testGoCode(submission models.Submission, execResults *[]models.ExecResult) 
 		startTime := time.Now()
 		output, err := golang.ExecuteSubmission(testCase, outputPath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 
@@ -322,11 +346,15 @@ func testPerlCode(submission models.Submission, execResults *[]models.ExecResult
 		startTime := time.Now()
 		output, err := perl.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {
@@ -355,11 +383,15 @@ func testJavascriptCode(submission models.Submission, execResults *[]models.Exec
 		startTime := time.Now()
 		output, err := javascript.ExecuteSubmission(testCase, filePath)
 		execTime := time.Since(startTime).Milliseconds()
+		if err != nil {
+			allPassed = false
+			gErr = err
+		}
 		execResult, status := getExecResult(testCase, output, err)
 		execResult.Status.Exec_time_ms = uint32(execTime)
-		if status != currentstatus.SUCCESS {
+		if status == currentstatus.FAILED {
 			allPassed = false
-			gErr = fmt.Errorf("%s", status.ToString())
+			gErr = coderunners.FailedError
 		}
 		*execResults = append(*execResults, execResult)
 		if err != nil {

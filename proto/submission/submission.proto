@@ -1,0 +1,28 @@
+syntax = "proto3";
+package submission;
+
+option go_package = "github.com/ishu17077/code_runner_backend/proto;submission";
+//? "path:desired_package_name"
+
+
+message Attachment{
+    string file_name = 1;
+    string file_content = 2;
+}
+
+message Testcase{
+    string problem_id = 1;
+    string stdin = 2;
+    string expected_output = 3;
+    string test_id = 4;
+}
+
+message Submission{
+   string problem_id = 1;
+   string language = 2;
+   string code = 3;
+   repeated Attachment attachments = 5;
+   bool pipe = 6;
+   repeated Testcase tests = 7;
+    
+}
