@@ -136,11 +136,12 @@ I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgewogICAgaW50IHJlczsKICAgIHNjYW5mKCIlZCIs
 
 - `POST {host_url}/submission/test/private`
 - `POST {host_url}/submission/test/public`
+- `GET  {host_url}/submission/run` (WebSocket upgrade)
 
 Replace `{host_url}` with your service address.
 
 > [!NOTE]
-> `/submission/test/public` supports up to 3 tests in one request.
+> `/submission/test/public` supports up to 10 tests in one request.
 
 ### Request body example
 
@@ -175,6 +176,33 @@ You can append `| jq` to pretty-print the response.
 > [!NOTE]
 > Service is exposed via NodePort `30080` in the provided Kubernetes manifests.
 
+### WebSocket submission pipe (interactive run)
+
+Use this endpoint when you want interactive stdin/stdout piping:
+
+- Endpoint: `ws://{host_url}/submission/run`
+- Route implementation: `/submission/run` (WebSocket upgrade)
+- First client message must be a JSON `Submission` payload with base64-encoded `code`
+- After the first message, send raw stdin chunks as WebSocket text frames
+- Program stdout/stderr is streamed back as WebSocket text frames
+
+Server-side behavior from current implementation:
+
+- Sends an initial message: `Preparing a terminal window`
+- Sends WebSocket ping control frames every 30 seconds to keep the connection alive
+- Execution timeout is 2 minutes for a single interactive run
+
+Minimal initial payload example:
+
+```json
+{
+  "problem_id": "69",
+  "language": "C",
+  "code": "I2luY2x1ZGUgPHN0ZGlvLmg+CmludCBtYWluKCkgeyBpbnQgeDsgc2NhbmYoIiVkIiwgJngpOyBwcmludGYoIiVkXG4iLCB4KjIpOyB9",
+  "tests": []
+}
+```
+
 ### Scaling warm runners
 
 For higher parallel processing, increase `replicas` in:
@@ -207,8 +235,10 @@ minikube start
 ### Build and load image
 
 ```bash
-docker build -t code_runner . -o code_runner.tar
-minikube load ./code_runner.tar
+docker build -f ./code-runner.Dockerfile . -t code-runner
+docker build -f ./warm-runner.Dockerfile . -t warm-runner
+minikube image load code-runner:latest
+minikube image load warm-runner:latest
 ```
 
 ### Deploy and access service
